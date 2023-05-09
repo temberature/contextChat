@@ -36,6 +36,13 @@
         document.getElementById("result").innerText = markdownResult;
       });
 
+      ipcRenderer.on("markdown-excerpt", async (event, markdownExcerpt) => {
+        const prompt = markdownExcerpt + "总结一下上述内容：";
+        const response = await getCompletion(prompt, "gpt-3.5-turbo");
+        setLoading(false);
+        document.getElementById("result").innerText = response;
+        // Handle the response as needed, e.g., display it in the web page
+      });
       // Add more event listeners for the other command buttons here.
       // Example: document.getElementById('command1').addEventListener('click', yourFunctionForCommand1);
 
@@ -59,6 +66,29 @@
         } else {
           loadingElement.style.display = "none";
         }
+      }
+
+      async function getCompletion(prompt, model = "gpt-3.5-turbo") {
+        const requestBody = {
+          model: model,
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0,
+        };
+
+        const response = await fetch(
+          "https://api.openai.com/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ***REMOVED***`,
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
+
+        const data = await response.json();
+        return data.choices[0].message.content;
       }
     </script>
   </body>
