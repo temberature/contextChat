@@ -26,7 +26,7 @@ app.whenReady().then(createWindow);
 app.whenReady().then(() => {
   const ret = globalShortcut.register('CommandOrControl+Alt+S', () => {
     app.show()
-    app.focus({ steal: true})
+    app.focus({ steal: true })
     // let win = BrowserWindow.getFocusedWindow();
 
     // if (!win) {
@@ -41,7 +41,7 @@ app.whenReady().then(() => {
     //   app.show()
     //   win.focus({ steal: true });
     //   // win.setAlwaysOnTop(false);
-      
+
     // }
   });
 
@@ -79,11 +79,11 @@ ipcMain.on('get-summary', async (event) => {
     const markdownContent = await getMarkdown(webpageContent);
     if (markdownContent) {
       const markdownExcerpt = markdownContent.length < 1800 ? markdownContent : markdownContent.slice(0, 900) + markdownContent.slice(-900);
-      const response = await getCompletion(markdownExcerpt + '总结一下上述内容：', 'gpt-3.5-turbo') + '\n(人工智能生成)';
-      event.reply('summary-result', response);
+      event.reply('markdown-excerpt', markdownExcerpt);
     }
   });
 });
+
 
 
 
