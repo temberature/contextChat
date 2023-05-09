@@ -11,21 +11,39 @@
   </head>
   <body>
     <h1>Web Summary</h1>
-    <p>Press the button to get the summary:</p>
-    <button id="summaryButton">Get summary</button>
+    <p>Press the number keys to trigger the corresponding commands:</p>
+    <button id="command1" data-key="1">1. Command 1</button>
+    <button id="command2" data-key="2">2. Command 2</button>
+    <button id="command3" data-key="3">3. Command 3</button>
+    <button id="summaryButton" data-key="4">4. Get summary</button>
     <div id="result"></div>
 
     <script>
       const { ipcRenderer } = require('electron');
 
-      document
-        .getElementById('summaryButton')
-        .addEventListener('click', () => {
-          ipcRenderer.send('get-summary');
-        });
+      const summaryButton = document.getElementById('summaryButton');
+      summaryButton.addEventListener('click', () => {
+        ipcRenderer.send('get-summary');
+      });
 
       ipcRenderer.on('summary-result', (event, markdownResult) => {
         document.getElementById('result').innerText = markdownResult;
+      });
+
+      // Add more event listeners for the other command buttons here.
+      // Example: document.getElementById('command1').addEventListener('click', yourFunctionForCommand1);
+
+      // Add a keydown event listener to the window
+      window.addEventListener('keydown', (event) => {
+        const keyPressed = event.key;
+        const buttonList = document.querySelectorAll('button');
+
+        buttonList.forEach((button) => {
+          const buttonKey = button.getAttribute('data-key');
+          if (keyPressed === buttonKey) {
+            button.click();
+          }
+        });
       });
     </script>
   </body>
