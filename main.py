@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import messagebox
 import subprocess
 import os
+from pynput import keyboard
+import threading
 
 def get_current_url():
     applescript = '''
@@ -41,13 +43,29 @@ def on_key(event):
     elif event.char == 'q' or event.char == 'Q':
         root.destroy()
 
-root = tk.Tk()
-root.title('命令选择')
-root.geometry('200x100')
+def show_main_window():
+    global root
+    root = tk.Tk()
+    root.title('命令选择')
+    root.geometry('200x100')
 
-label = tk.Label(root, text="请输入命令数字：\n1. 总结\n按 Q 退出")
-label.pack()
+    label = tk.Label(root, text="请输入命令数字：\n1. 总结\n按 Q 退出")
+    label.pack()
 
-root.bind('<Key>', on_key)
+    root.bind('<Key>', on_key)
+    root.mainloop()
 
-root.mainloop()
+def on_hotkey_press(key):
+    if key == keyboard.Key.f12:
+        if root is None or not root.winfo_exists():
+            show_main_window()
+
+def start_keyboard_listener():
+    with keyboard.Listener(on_press=on_hotkey_press) as listener:
+        listener.join()
+
+root = None
+keyboard_thread = threading.Thread(target=start_keyboard_listener, daemon=True)
+keyboard_thread.start()
+
+show_main_window()
