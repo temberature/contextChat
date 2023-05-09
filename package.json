@@ -12,5 +12,13 @@
   "license": "ISC",
   "devDependencies": {
     "electron": "^24.2.0"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.4.4",
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.3",
+    "jsdom": "^22.0.0",
+    "puppeteer": "^20.1.2",
+    "turndown": "^7.1.2"
   }
 }

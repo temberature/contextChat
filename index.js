@@ -1,6 +1,12 @@
 const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
-
 const { exec } = require('child_process');
+const puppeteer = require('puppeteer');
+const TurndownService = require('turndown');
+const axios = require('axios');
+const { JSDOM } = require('jsdom');
+const { Readability } = require('@mozilla/readability');
+
+require("dotenv").config();
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -58,27 +64,22 @@ app.on('activate', () => {
 });
 
 ipcMain.on('get-summary', (event) => {
-  const pythonScriptPath = '/Users/tong/SDD/contextChat/html_to_markdown.py';
-  const virtualEnvPath = '/Users/tong/SDD/contextChat/venv/bin/python';
 
-  getActiveBrowserURL((theURL) => {
+  getActiveBrowserURL(async (theURL) => {
+    console.log(theURL);
     if (theURL === "error") {
       console.error("Safari 或 Google Chrome 必须处于打开状态。");
       event.reply('summary-result', "Safari 或 Google Chrome 必须处于打开状态。");
       return;
     }
 
-    exec(
-      `${virtualEnvPath} ${pythonScriptPath} ${theURL}`,
-      (error, stdout, stderr) => {
-        if (error) {
-          console.error(`exec error: ${error}`);
-          event.reply('summary-result', `Error: ${error}`);
-          return;
-        }
-        event.reply('summary-result', stdout);
-      }
-    );
+    const markdownContent = await getMarkdown(theURL);
+    console.log(markdownContent);
+    if (markdownContent) {
+      const markdownExcerpt = markdownContent.slice(0, 900) + markdownContent.slice(-900);
+      const response = await getCompletion(markdownExcerpt + '总结一下上述内容：', 'gpt-3.5-turbo') + '\n(人工智能生成)';
+      event.reply('summary-result', response);
+    }
   });
 });
 
@@ -110,4 +111,51 @@ function getActiveBrowserURL(callback) {
     }
     callback(stdout.trim());
   });
+}
+
+async function getWebpageContent(url) {
+  const browser = await puppeteer.launch({ headless: true });
+  const page = await browser.newPage();
+  await page.goto(url, { waitUntil: 'networkidle0' });
+
+  const renderedHtml = await page.content();
+  await browser.close();
+
+  return renderedHtml;
+}
+
+async function getMarkdown(url) {
+  const webpageContent = await getWebpageContent(url);
+
+  const dom = new JSDOM(webpageContent);
+  const reader = new Readability(dom.window.document);
+  const article = reader.parse();
+
+  if (!article) return null;
+  const turndownService = new TurndownService();
+  const markdown = turndownService.turndown(article.content);
+  // Save the markdown content to a file (optional)
+  require('fs').writeFileSync('output.md', markdown, 'utf8');
+  return markdown;
+}
+
+async function getCompletion(prompt, model = 'gpt-3.5-turbo') {
+  messages = [{ "role": "user", "content": prompt }]
+  const response = await axios.post(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      model: model,
+      messages: messages, // include limited messages in the payload
+      temperature: 0,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Cache-Control": "no-cache",
+      },
+    }
+  );
+  console.log(response);
+  return response.data.choices[0].message["content"]
 }
