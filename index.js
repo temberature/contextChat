@@ -25,26 +25,31 @@ function createWindow() {
 app.whenReady().then(createWindow);
 app.whenReady().then(() => {
   const ret = globalShortcut.register('CommandOrControl+Alt+S', () => {
-    let win = BrowserWindow.getFocusedWindow();
+    app.show()
+    app.focus({ steal: true})
+    // let win = BrowserWindow.getFocusedWindow();
 
-    if (!win) {
-      win = BrowserWindow.getAllWindows()[0];
-    }
+    // if (!win) {
+    //   win = BrowserWindow.getAllWindows()[0];
+    // }
 
-    if (win) {
-      if (win.isMinimized()) {
-        win.restore();
-      }
-      win.setAlwaysOnTop(true); // 添加这行
-      win.focus();
-      win.setAlwaysOnTop(false); // 添加这行
-    }
+    // if (win) {
+    //   if (win.isMinimized()) {
+    //     win.restore();
+    //   }
+    //   // win.setAlwaysOnTop(true);
+    //   app.show()
+    //   win.focus({ steal: true });
+    //   // win.setAlwaysOnTop(false);
+      
+    // }
   });
 
   if (!ret) {
     console.log('快捷键注册失败');
   }
 });
+
 
 
 app.on('will-quit', () => {
