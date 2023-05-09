@@ -63,18 +63,15 @@ app.on('activate', () => {
   }
 });
 
-ipcMain.on('get-summary', (event) => {
-
-  getActiveBrowserURL(async (theURL) => {
-    console.log(theURL);
-    if (theURL === "error") {
-      console.error("Safari 或 Google Chrome 必须处于打开状态。");
-      event.reply('summary-result', "Safari 或 Google Chrome 必须处于打开状态。");
+ipcMain.on('get-summary', async (event) => {
+  getActiveBrowserHTML(async (webpageContent) => {
+    if (webpageContent === 'error') {
+      console.error('Safari 或 Google Chrome 必须处于打开状态。');
+      event.reply('summary-result', 'Safari 或 Google Chrome 必须处于打开状态。');
       return;
     }
 
-    const markdownContent = await getMarkdown(theURL);
-    console.log(markdownContent);
+    const markdownContent = await getMarkdown(webpageContent);
     if (markdownContent) {
       const markdownExcerpt = markdownContent.slice(0, 900) + markdownContent.slice(-900);
       const response = await getCompletion(markdownExcerpt + '总结一下上述内容：', 'gpt-3.5-turbo') + '\n(人工智能生成)';
@@ -82,6 +79,7 @@ ipcMain.on('get-summary', (event) => {
     }
   });
 });
+
 
 
 
@@ -124,8 +122,7 @@ async function getWebpageContent(url) {
   return renderedHtml;
 }
 
-async function getMarkdown(url) {
-  const webpageContent = await getWebpageContent(url);
+async function getMarkdown(webpageContent) {
 
   const dom = new JSDOM(webpageContent);
   const reader = new Readability(dom.window.document);
@@ -158,4 +155,34 @@ async function getCompletion(prompt, model = 'gpt-3.5-turbo') {
   );
   console.log(response);
   return response.data.choices[0].message["content"]
+}
+
+function getActiveBrowserHTML(callback) {
+  const appleScript = `
+    set theHTML to ""
+    tell application "System Events"
+      set processList to name of every process
+      if "Safari" is in processList then
+        tell application "Safari"
+          set theURL to URL of current tab of window 1
+          set theHTML to do JavaScript "document.documentElement.outerHTML" in current tab of window 1
+        end tell
+      else if "Google Chrome" is in processList then
+        tell application "Google Chrome"
+          set theURL to URL of active tab of window 1
+          set theHTML to execute active tab of window 1 javascript "document.documentElement.outerHTML"
+        end tell
+      else
+        set theHTML to "error"
+      end if
+    end tell
+    return theHTML
+  `;
+  exec(`osascript -e '${appleScript}'`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return;
+    }
+    callback(stdout.trim());
+  });
 }
