@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Web Summary</title>
+    <style>
+      body {
+        font-family: 'Arial', sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Web Summary</h1>
+    <p>Press the button to get the summary:</p>
+    <button id="summaryButton">Get summary</button>
+    <div id="result"></div>
+
+    <script>
+      const { ipcRenderer } = require('electron');
+
+      document
+        .getElementById('summaryButton')
+        .addEventListener('click', () => {
+          ipcRenderer.send('get-summary');
+        });
+
+      ipcRenderer.on('summary-result', (event, markdownResult) => {
+        document.getElementById('result').innerText = markdownResult;
+      });
+    </script>
+  </body>
+</html>
