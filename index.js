@@ -1,4 +1,5 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
+
 const { exec } = require('child_process');
 
 function createWindow() {
@@ -7,14 +8,42 @@ function createWindow() {
     height: 600,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false, // Add this line
+      contextIsolation: false,
     },
   });
 
   win.loadFile('index.html');
 }
 
+
 app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  const ret = globalShortcut.register('CommandOrControl+Alt+S', () => {
+    let win = BrowserWindow.getFocusedWindow();
+
+    if (!win) {
+      win = BrowserWindow.getAllWindows()[0];
+    }
+
+    if (win) {
+      if (win.isMinimized()) {
+        win.restore();
+      }
+      win.setAlwaysOnTop(true); // 添加这行
+      win.focus();
+      win.setAlwaysOnTop(false); // 添加这行
+    }
+  });
+
+  if (!ret) {
+    console.log('快捷键注册失败');
+  }
+});
+
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
