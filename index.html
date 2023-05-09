@@ -24,7 +24,7 @@
 
     <script>
       const { ipcRenderer } = require("electron");
-
+      const { SSE } = require("sse.js");
       const summaryButton = document.getElementById("summaryButton");
       summaryButton.addEventListener("click", () => {
         setLoading(true);
@@ -38,9 +38,15 @@
 
       ipcRenderer.on("markdown-excerpt", async (event, markdownExcerpt) => {
         const prompt = markdownExcerpt + "总结一下上述内容：";
-        const response = await getCompletion(prompt, "gpt-3.5-turbo");
-        setLoading(false);
-        document.getElementById("result").innerText = response;
+        const response = await getCompletionStream(
+          prompt,
+          "gpt-3.5-turbo",
+          (chunk) => {
+            setLoading(false);
+            document.getElementById("result").innerText = chunk;
+          }
+        );
+
         // Handle the response as needed, e.g., display it in the web page
       });
       // Add more event listeners for the other command buttons here.
@@ -89,6 +95,64 @@
 
         const data = await response.json();
         return data.choices[0].message.content;
+      }
+      async function getCompletionStream(
+        prompt,
+        model = "gpt-3.5-turbo",
+        callback
+      ) {
+        const requestBody = {
+          model: model,
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0,
+          stream: true,
+        };
+
+        const source = new SSE(`https://api.openai.com/v1/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer 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`,
+          },
+          payload: JSON.stringify(requestBody),
+        });
+        let first = true,
+          chunk;
+        source.addEventListener("error", (e) => {
+          console.log(e);
+          const data = JSON.parse(e.data || "{}");
+          if (data.error) {
+            console.log(data.error);
+            let confirmation;
+            if (data.error.code === "context_length_exceeded") {
+              alert(`${JSON.stringify(data.error)}`);
+            } else {
+              confirmation = window.confirm(
+                `${JSON.stringify(data.error)}\n\nWould you like to try again?`
+              );
+            }
+          }
+        });
+        source.addEventListener("message", function (e) {
+          // Assuming we receive JSON-encoded data payloads:
+          console.log(e.data);
+          if (e.data !== "[DONE]") {
+            var data = JSON.parse(e.data);
+            // console.log(data);
+
+            if (!data.choices[0].delta.content) {
+              return;
+            }
+            if (first) {
+              chunk = data.choices[0].delta.content;
+              first = false;
+            } else {
+              chunk += data.choices[0].delta.content;
+            }
+            callback(chunk);
+          }
+        });
+        source.stream();
       }
     </script>
   </body>
