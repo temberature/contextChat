@@ -5,6 +5,9 @@ const TurndownService = require('turndown');
 const axios = require('axios');
 const { JSDOM } = require('jsdom');
 const { Readability } = require('@mozilla/readability');
+const robot = require('robotjs');
+const { clipboard } = require('electron');
+const fs = require('fs');
 
 require("dotenv").config();
 
@@ -27,22 +30,11 @@ app.whenReady().then(() => {
   const ret = globalShortcut.register('CommandOrControl+Alt+S', () => {
     app.show()
     app.focus({ steal: true })
-    // let win = BrowserWindow.getFocusedWindow();
-
-    // if (!win) {
-    //   win = BrowserWindow.getAllWindows()[0];
-    // }
-
-    // if (win) {
-    //   if (win.isMinimized()) {
-    //     win.restore();
+    // checkActiveApp((activeApp) => {
+    //   if (activeApp === 'Discord') {
+    //     getContext();
     //   }
-    //   // win.setAlwaysOnTop(true);
-    //   app.show()
-    //   win.focus({ steal: true });
-    //   // win.setAlwaysOnTop(false);
-
-    // }
+    // });
   });
 
   if (!ret) {
@@ -141,27 +133,6 @@ async function getMarkdown(webpageContent) {
   return markdown;
 }
 
-async function getCompletion(prompt, model = 'gpt-3.5-turbo') {
-  messages = [{ "role": "user", "content": prompt }]
-  const response = await axios.post(
-    "https://api.openai.com/v1/chat/completions",
-    {
-      model: model,
-      messages: messages, // include limited messages in the payload
-      temperature: 0,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Cache-Control": "no-cache",
-      },
-    }
-  );
-  console.log(response);
-  return response.data.choices[0].message["content"]
-}
-
 function getActiveBrowserHTML(callback) {
   const appleScript = `
     set theHTML to ""
@@ -190,4 +161,49 @@ function getActiveBrowserHTML(callback) {
     }
     callback(stdout.trim());
   });
+}
+
+function checkActiveApp(callback) {
+  const appleScript = `
+  tell application "System Events"
+    set activeApp to name of first application process whose frontmost is true
+  end tell
+  return activeApp`;
+
+  exec(`osascript -e '${appleScript}'`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return;
+    }
+    callback(stdout.trim());
+  });
+}
+
+async function getContext() {
+  const config = JSON.parse(fs.readFileSync("config.json", "utf8"));
+  // openai.apiKey = config["open_ai_api_key"];
+
+  screenshot_path = "screenshot.png"
+  // 截取屏幕截图
+  const image = robot.screen.capture(0, 0, 1920, 1080);
+  // 将屏幕截图保存为文件
+  fs.writeFileSync(screenshot_path, image.image);
+
+  url = "http://192.168.10.116:8089/api/tr-run/"
+
+  image_data = open(screenshot_path, 'rb').read()
+  multipart_data = {
+    "file": (screenshot_path, image_data, "image/png"),
+    "compress": (None, "960"),
+  }
+
+  const response = await axios.post(url, multipartData, { verify: false });
+
+  console.log(response.data);
+
+  // More conversions here
+
+  // fs.writeFileSync('result.json', newResponseString);
+
+  // More conversions here
 }

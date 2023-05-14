@@ -5,12 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "electron .",
+    "postinstall": "./node_modules/.bin/electron-rebuild install-app-deps"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@electron/rebuild": "^3.2.13",
     "electron": "^24.2.0"
   },
   "dependencies": {
@@ -19,6 +21,7 @@
     "dotenv": "^16.0.3",
     "jsdom": "^22.0.0",
     "puppeteer": "^20.1.2",
+    "robotjs": "^0.6.0",
     "sse.js": "^0.6.1",
     "turndown": "^7.1.2"
   }
