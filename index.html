@@ -2,17 +2,52 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Web Summary</title>
+    <title>ContextChat</title>
     <style>
       body {
         font-family: "Arial", sans-serif;
+        background-color: #F3F3F3;
+        color: #333;
+      }
+      h1 {
+        text-align: center;
+        color: #555;
+      }
+      button {
+        display: inline-block;
+        padding: 10px 20px;
+        margin: 5px 2px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      #result {
+        margin-top: 10px;
+        width: 80%;
+        margin-left: auto;
+        margin-right: auto;
+        border: 1px solid #ccc;
+        padding: 20px;
+        border-radius: 5px;
+        background-color: white;
+      }
+      #loading {
+        text-align: center;
+        color: #555;
       }
     </style>
+    <link rel="stylesheet" href="./css/vex.css" />
+    <link rel="stylesheet" href="./css/vex-theme-os.css" />
   </head>
   <body>
-    <h1>Web Summary</h1>
-    <p>Press the number keys to trigger the corresponding commands:</p>
-    <button id="command1" data-key="1">1. Command 1</button>
+    <p>Press the number keys to trigger the corresponding prompts:</p>
+    <button id="command1" data-key="1">1. Create Dialogues</button>
     <button id="command2" data-key="2">2. Command 2</button>
     <button id="command3" data-key="3">3. Command 3</button>
     <button id="summaryButton" data-key="4">4. Get summary</button>
@@ -25,8 +60,8 @@
     <script>
       const { ipcRenderer } = require("electron");
       const { SSE } = require("sse.js");
-      const { getCompletion, getCompletionStream, setLoading } = require("./utils");
-      const { handleButtonPress } = require("./handlers");
+      const { getCompletion, getCompletionStream, setLoading } = require("./js/utils");
+      const { handleButtonPress } = require("./js/handlers");
       // const summaryButton = document.getElementById("summaryButton");
       // summaryButton.addEventListener("click", () => {
       //   setLoading(true);
@@ -50,8 +85,10 @@
         buttonList.forEach((button) => {
           const buttonKey = button.getAttribute("data-key");
           if (keyPressed === buttonKey) {
+            event.preventDefault();
             // button.click();
             console.log("button clicked", buttonKey);
+            setLoading(true);
             handleButtonPress(buttonKey);
           }
         });

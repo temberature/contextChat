@@ -80,7 +80,7 @@ async function getCompletionStream(
                 chunk = data.choices[0].delta.content;
                 first = false;
             } else {
-                chunk += data.choices[0].delta.content;
+                chunk = data.choices[0].delta.content;
             }
             callback(chunk);
         }
