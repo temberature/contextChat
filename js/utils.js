@@ -96,7 +96,7 @@ async function getCompletionStream(
     });
 }
 
-function redditPost() {
+function redditPost(url, title, subredditName="thirdbrain") {
     // Replace these with your own values
     const r = new snoowrap({
         userAgent: 'your_user_agent',
@@ -105,13 +105,6 @@ function redditPost() {
         username: 'temberatur',
         password: 'IhAd@!159107'
     });
-
-    // Define the subreddit you want to post to
-    const subredditName = 'thirdbrain'; // Replace with the subreddit you want
-
-    // Define the link and the title of the post
-    const title = 'Check out this awesome link!';
-    const url = 'https://www.example.com';
 
     // Post the link
     r.getSubreddit(subredditName).submitLink({ title: title, url: url })

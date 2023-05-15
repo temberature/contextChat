@@ -45,7 +45,8 @@ async function createDialogues() {
 
 }
 
-ipcRenderer.on("markdown-contexts", async (event, contexts) => {
+ipcRenderer.on("markdown-contexts", async (event, data) => {
+    const { url, title, contexts } = data;
     for (let i = 0; i < contexts.length; i++) {
         const context = contexts[i];
         const prompt = context + ",summarize above content：";
@@ -60,7 +61,7 @@ ipcRenderer.on("markdown-contexts", async (event, contexts) => {
         );
         document.getElementById("result").innerText += "\n\n";
     }
-    redditPost();
+    redditPost(url, title);
 })
 
 async function summarize() {
