@@ -112,9 +112,27 @@ function redditPost(url, title, subredditName="thirdbrain") {
         .catch(console.error);
 }
 
+function redditTextPost(title, text, subredditName="thirdbrain") {
+    // Replace these with your own values
+    const r = new snoowrap({
+        userAgent: 'your_user_agent',
+        clientId: 'kOMMUHcNrDTmC4w7N4Fg_Q',
+        clientSecret: 'cKIB6DmymUYd9G7TGD23c-zM1BI3fA',
+        username: 'temberatur',
+        password: 'IhAd@!159107'
+    });
+
+    // Post the text
+    r.getSubreddit(subredditName).submitSelfpost({ title: title, text: text })
+        .then(console.log)
+        .catch(console.error);
+}
+
+
 module.exports = {
     getCompletion,
     getCompletionStream,
     setLoading,
-    redditPost
+    redditPost,
+    redditTextPost
 };
