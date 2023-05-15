@@ -112,9 +112,27 @@ function redditPost(url, title, subredditName="thirdbrain") {
         .catch(console.error);
 }
 
+function redditTextPost(title, text, subredditName="thirdbrain") {
+    // Replace these with your own values
+    const r = new snoowrap({
+        userAgent: '***REMOVED***',
+        clientId: '***REMOVED***',
+        clientSecret: '***REMOVED***',
+        username: '***REMOVED***',
+        password: '***REMOVED***'
+    });
+
+    // Post the text
+    r.getSubreddit(subredditName).submitSelfpost({ title: title, text: text })
+        .then(console.log)
+        .catch(console.error);
+}
+
+
 module.exports = {
     getCompletion,
     getCompletionStream,
     setLoading,
-    redditPost
+    redditPost,
+    redditTextPost
 };

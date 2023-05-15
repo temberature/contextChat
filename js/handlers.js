@@ -1,5 +1,5 @@
 const { ipcRenderer } = require("electron");
-const { getCompletion, getCompletionStream, setLoading, redditPost } = require("./utils");
+const { getCompletion, getCompletionStream, setLoading, redditPost, redditTextPost } = require("./utils");
 const { clipboard } = require('electron');
 
 
@@ -61,14 +61,14 @@ ipcRenderer.on("markdown-contexts", async (event, data) => {
         );
         document.getElementById("result").innerText += "\n\n";
     }
-    redditPost(url, title);
+    redditTextPost(title, url + "\n\n" + document.getElementById("result").innerText);
 })
 
 async function summarize() {
     let content = clipboard.readText();
 
     if (content && content.length > 1000) {
-        const prompt = content + ", summarize above content:";
+        const prompt = content + ", summarize above whole content:";
         console.log(prompt);
         const response = await getCompletionStream(
             prompt,
