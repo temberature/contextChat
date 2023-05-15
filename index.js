@@ -8,8 +8,16 @@ const { Readability } = require('@mozilla/readability');
 const robot = require('robotjs');
 const { clipboard } = require('electron');
 const fs = require('fs');
+const { Tiktoken } = require("@dqbd/tiktoken/lite");
+const cl100k_base = require("@dqbd/tiktoken/encoders/cl100k_base.json");
 
 require("dotenv").config();
+
+const encoding = new Tiktoken(
+  cl100k_base.bpe_ranks,
+  cl100k_base.special_tokens,
+  cl100k_base.pat_str
+);
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -69,10 +77,26 @@ ipcMain.on('get-summary', async (event) => {
     }
 
     const markdownContent = await getMarkdown(webpageContent);
-    if (markdownContent) {
-      const markdownExcerpt = markdownContent.length < 1800 ? markdownContent : markdownContent.slice(0, 900) + markdownContent.slice(-900);
-      event.reply('markdown-excerpt', markdownExcerpt);
+    const lines = markdownContent.split(".");
+    let contextSize = 0, context = "", contexts = [];
+    for (let i = 0; i < lines.length; i++) {
+      const lineSize = encoding.encode(lines[i]).length;
+      contextSize += lineSize;
+      if (contextSize > 3500) {
+        console.log(contextSize + "\n");
+        console.log(context);
+        contexts.push(context);
+        
+        contextSize = lineSize;
+        context = lines[i] + ".";
+
+      } else {
+        context += lines[i] + ".";
+      }
+
     }
+    contexts.push(context);
+    event.reply('markdown-contexts', contexts);
   });
 });
 
