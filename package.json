@@ -16,13 +16,19 @@
     "electron": "^24.2.0"
   },
   "dependencies": {
+    "@dqbd/tiktoken": "^1.0.7",
+    "@electron/remote": "^2.0.9",
     "@mozilla/readability": "^0.4.4",
     "axios": "^1.4.0",
     "dotenv": "^16.0.3",
+    "electron-prompt": "^1.7.0",
+    "franc-min": "^6.1.0",
     "jsdom": "^22.0.0",
     "puppeteer": "^20.1.2",
     "robotjs": "^0.6.0",
+    "snoowrap": "^1.23.0",
     "sse.js": "^0.6.1",
-    "turndown": "^7.1.2"
+    "turndown": "^7.1.2",
+    "vex-js": "^4.1.0"
   }
 }

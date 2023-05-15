@@ -93,12 +93,19 @@ ipcMain.on('get-summary', async (event) => {
       } else {
         context += lines[i] + ".";
       }
-
     }
     contexts.push(context);
-    event.reply('markdown-contexts', contexts);
+
+    getActiveBrowserData((data) => {
+      event.reply('markdown-contexts', {
+        contexts: contexts,
+        url: data.url,
+        title: data.title
+      });
+    });
   });
 });
+
 
 
 
@@ -131,6 +138,40 @@ function getActiveBrowserURL(callback) {
     callback(stdout.trim());
   });
 }
+
+function getActiveBrowserData(callback) {
+  const appleScript = `
+  tell application "System Events"
+    set processList to name of every process
+    if "Safari" is in processList then
+      tell application "Safari"
+        set theURL to URL of current tab of window 1
+        set theTitle to name of current tab of window 1
+      end tell
+    else if "Google Chrome" is in processList then
+      tell application "Google Chrome"
+        set theURL to URL of active tab of window 1
+        set theTitle to title of active tab of window 1
+      end tell
+    else
+      set theURL to "error"
+      set theTitle to "error"
+    end if
+  end tell
+  return theURL & "\n" & theTitle`;
+
+  exec(`osascript -e '${appleScript}'`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      callback({url: "error", title: "error"});
+      return;
+    }
+    const [url, title] = stdout.trim().split("\n");
+    callback({url, title});
+  });
+}
+
+
 
 async function getWebpageContent(url) {
   const browser = await puppeteer.launch({ headless: true });
