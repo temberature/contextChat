@@ -61,27 +61,15 @@ ipcRenderer.on("markdown-contexts", async (event, data) => {
         );
         document.getElementById("result").innerText += "\n\n";
     }
+    document.getElementById("result").innerText += "（AI generated content）";
+    if (!title) {
+        return;
+    }
     redditTextPost(title, url + "\n\n" + document.getElementById("result").innerText);
 })
 
 async function summarize() {
-    let content = clipboard.readText();
-
-    if (content && content.length > 1000) {
-        const prompt = content + ", summarize above whole content:";
-        console.log(prompt);
-        const response = await getCompletionStream(
-            prompt,
-            "gpt-3.5-turbo",
-            (chunk) => {
-                setLoading(false);
-                document.getElementById("result").innerText += chunk;
-            }
-        );
-        document.getElementById("result").innerText += "\n\n";
-    } else {
-        ipcRenderer.send("get-summary");
-    }
+    ipcRenderer.send("get-summary");
 }
 
 module.exports = {

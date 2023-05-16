@@ -69,7 +69,10 @@ app.on('activate', () => {
 });
 
 ipcMain.on('get-summary', async (event) => {
-  getActiveBrowserHTML(async (webpageContent) => {
+  let content = clipboard.readText();
+  let url = "", title = "";
+  if (!content || content.length < 1000) {
+    const webpageContent = await getActiveBrowserHTML();
     if (webpageContent === 'error') {
       console.error('Safari 或 Google Chrome 必须处于打开状态。');
       event.reply('summary-result', 'Safari 或 Google Chrome 必须处于打开状态。');
@@ -77,32 +80,35 @@ ipcMain.on('get-summary', async (event) => {
     }
 
     const markdownContent = await getMarkdown(webpageContent);
-    const lines = markdownContent.split(".");
-    let contextSize = 0, context = "", contexts = [];
-    for (let i = 0; i < lines.length; i++) {
-      const lineSize = encoding.encode(lines[i]).length;
-      contextSize += lineSize;
-      if (contextSize > 3500) {
-        console.log(contextSize + "\n");
-        console.log(context);
-        contexts.push(context);
-        
-        contextSize = lineSize;
-        context = lines[i] + ".";
+    const data = await getActiveBrowserData();
+    url = data.url;
+    title = data.title;
+    content = markdownContent;
+  }
+  const spliter = "\n";
+  const lines = content.split(spliter);
+  let contextSize = 0, context = "", contexts = [];
+  for (let i = 0; i < lines.length; i++) {
+    const lineSize = encoding.encode(lines[i]).length;
+    contextSize += lineSize;
+    if (contextSize > 3500) {
+      console.log(contextSize + "\n");
+      console.log(context);
+      contexts.push(context);
 
-      } else {
-        context += lines[i] + ".";
-      }
+      contextSize = lineSize;
+      context = lines[i] + spliter;
+
+    } else {
+      context += lines[i] + spliter;
     }
-    contexts.push(context);
+  }
+  contexts.push(context);
 
-    getActiveBrowserData((data) => {
-      event.reply('markdown-contexts', {
-        contexts: contexts,
-        url: data.url,
-        title: data.title
-      });
-    });
+  event.reply('markdown-contexts', {
+    contexts: contexts,
+    url: url,
+    title: title
   });
 });
 
@@ -110,35 +116,38 @@ ipcMain.on('get-summary', async (event) => {
 
 
 
-function getActiveBrowserData(callback) {
-  const appleScript = `
-  tell application "System Events"
-    set processList to name of every process
-    if "Safari" is in processList then
-      tell application "Safari"
-        set theURL to URL of current tab of window 1
-        set theTitle to name of current tab of window 1
-      end tell
-    else if "Google Chrome" is in processList then
-      tell application "Google Chrome"
-        set theURL to URL of active tab of window 1
-        set theTitle to title of active tab of window 1
-      end tell
-    else
-      set theURL to "error"
-      set theTitle to "error"
-    end if
-  end tell
-  return theURL & "\n" & theTitle`;
+function getActiveBrowserData() {
+  return new Promise((resolve, reject) => {
 
-  exec(`osascript -e '${appleScript}'`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`exec error: ${error}`);
-      callback({url: "error", title: "error"});
-      return;
-    }
-    const [url, title] = stdout.trim().split("\n");
-    callback({url, title});
+    const appleScript = `
+    tell application "System Events"
+      set processList to name of every process
+      if "Safari" is in processList then
+        tell application "Safari"
+          set theURL to URL of current tab of window 1
+          set theTitle to name of current tab of window 1
+        end tell
+      else if "Google Chrome" is in processList then
+        tell application "Google Chrome"
+          set theURL to URL of active tab of window 1
+          set theTitle to title of active tab of window 1
+        end tell
+      else
+        set theURL to "error"
+        set theTitle to "error"
+      end if
+    end tell
+    return theURL & "\n" & theTitle`;
+
+    exec(`osascript -e '${appleScript}'`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`exec error: ${error}`);
+        resolve({ url: "error", title: "error" });
+        return;
+      }
+      const [url, title] = stdout.trim().split("\n");
+      resolve({ url, title });
+    });
   });
 }
 
@@ -169,33 +178,36 @@ async function getMarkdown(webpageContent) {
   return markdown;
 }
 
-function getActiveBrowserHTML(callback) {
-  const appleScript = `
-    set theHTML to ""
-    tell application "System Events"
-      set processList to name of every process
-      if "Safari" is in processList then
-        tell application "Safari"
-          set theURL to URL of current tab of window 1
-          set theHTML to do JavaScript "document.documentElement.outerHTML" in current tab of window 1
-        end tell
-      else if "Google Chrome" is in processList then
-        tell application "Google Chrome"
-          set theURL to URL of active tab of window 1
-          set theHTML to execute active tab of window 1 javascript "document.documentElement.outerHTML"
-        end tell
-      else
-        set theHTML to "error"
-      end if
-    end tell
-    return theHTML
-  `;
-  exec(`osascript -e '${appleScript}'`, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`exec error: ${error}`);
-      return;
-    }
-    callback(stdout.trim());
+function getActiveBrowserHTML() {
+  return new Promise((resolve, reject) => {
+
+    const appleScript = `
+      set theHTML to ""
+      tell application "System Events"
+        set processList to name of every process
+        if "Safari" is in processList then
+          tell application "Safari"
+            set theURL to URL of current tab of window 1
+            set theHTML to do JavaScript "document.documentElement.outerHTML" in current tab of window 1
+          end tell
+        else if "Google Chrome" is in processList then
+          tell application "Google Chrome"
+            set theURL to URL of active tab of window 1
+            set theHTML to execute active tab of window 1 javascript "document.documentElement.outerHTML"
+          end tell
+        else
+          set theHTML to "error"
+        end if
+      end tell
+      return theHTML
+    `;
+    exec(`osascript -e '${appleScript}'`, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`exec error: ${error}`);
+        return;
+      }
+      resolve(stdout.trim());
+    });
   });
 }
 

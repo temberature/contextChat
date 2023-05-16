@@ -42,7 +42,7 @@ async function getCompletionStream(
         const requestBody = {
             model: model,
             messages: [{ role: "user", content: prompt }],
-            temperature: 0,
+            temperature: 1,
             stream: true,
         };
 
