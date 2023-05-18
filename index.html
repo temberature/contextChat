@@ -1,203 +1,237 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>ContextChat</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f3f3f3;
+        color: #333;
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <title>ContextChat</title>
-  <style>
-    body {
-      font-family: "Arial", sans-serif;
-      background-color: #F3F3F3;
-      color: #333;
-    }
+      h1 {
+        text-align: center;
+        color: #555;
+      }
 
-    h1 {
-      text-align: center;
-      color: #555;
-    }
+      button {
+        display: inline-block;
+        padding: 10px 20px;
+        margin: 5px 2px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
 
-    button {
-      display: inline-block;
-      padding: 10px 20px;
-      margin: 5px 2px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
+      button:hover {
+        background-color: #45a049;
+      }
 
-    button:hover {
-      background-color: #45a049;
-    }
+      #result {
+        margin-top: 10px;
+        width: 80%;
+        margin-left: auto;
+        margin-right: auto;
+        border: 1px solid #ccc;
+        padding: 20px;
+        border-radius: 5px;
+        background-color: white;
+      }
 
-    #result {
-      margin-top: 10px;
-      width: 80%;
-      margin-left: auto;
-      margin-right: auto;
-      border: 1px solid #ccc;
-      padding: 20px;
-      border-radius: 5px;
-      background-color: white;
-    }
+      #loading {
+        text-align: center;
+        color: #555;
+      }
+    </style>
+    <link rel="stylesheet" href="./css/vex.css" />
+    <link rel="stylesheet" href="./css/vex-theme-os.css" />
+  </head>
 
-    #loading {
-      text-align: center;
-      color: #555;
-    }
-  </style>
-  <link rel="stylesheet" href="./css/vex.css" />
-  <link rel="stylesheet" href="./css/vex-theme-os.css" />
-</head>
-
-<body>
-  <p>Press the number keys to trigger the corresponding prompts:</p>
-  <button id="command1" data-key="1">1. Create Dialogues</button>
-  <button id="command2" data-key="2">2. Command 2</button>
-  <button id="command3" data-key="3">3. Command 3</button>
-  <button id="summaryButton" data-key="4">4. Get summary</button>
-  <div id="loading" style="display: none">
-    <p>Loading...</p>
-  </div>
-
-  <div id="result"></div>
-  <form id="parameters-form" style="display: none;">
-    <div>
-      <label for="model-input">Model:</label>
-      <select id="model">
-        <option value="" disabled>Select a model</option>
-        <option value="gpt-4">gpt-4</option>
-        <option value="gpt-4-0314">gpt-4-0314</option>
-        <option value="gpt-4-32k" disabled>gpt-4-32k</option>
-        <option value="gpt-4-32k-0314" disabled>gpt-4-32k-0314</option>
-        <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
-        <option value="gpt-3.5-turbo-0301">gpt-3.5-turbo-0301</option>
-      </select>
+  <body>
+    <p>Press the number keys to trigger the corresponding prompts:</p>
+    <button id="command1" data-key="1">1. Create Dialogues</button>
+    <button id="command2" data-key="2">2. Command 2</button>
+    <button id="command3" data-key="3">3. Command 3</button>
+    <button id="summaryButton" data-key="4">4. Get summary</button>
+    <div id="loading" style="display: none">
+      <p>Loading...</p>
     </div>
-    <div>
-      <label>Prompt: </label>
-      <textarea id="prompt" name="prompt" value="">\n总结上述内容，以大纲的形式给出，并使用中文。\n</textarea>
+    <button id="copyButton">Copy Result</button>
+    <div id="result"></div>
+
+    <form id="parameters-form" style="display: none">
+      <div>
+        <label for="model-input">Model:</label>
+        <select id="model">
+          <option value="" disabled>Select a model</option>
+          <option value="gpt-4">gpt-4</option>
+          <option value="gpt-4-0314">gpt-4-0314</option>
+          <option value="gpt-4-32k" disabled>gpt-4-32k</option>
+          <option value="gpt-4-32k-0314" disabled>gpt-4-32k-0314</option>
+          <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
+          <option value="gpt-3.5-turbo-0301">gpt-3.5-turbo-0301</option>
+        </select>
+      </div>
+      <div>
+        <label>Prompt: </label>
+        <textarea id="prompt" name="prompt" value="">
+\n总结上述内容，以大纲的形式给出，并使用中文。\n</textarea
+        >
+      </div>
+      <div>
+        <label>Temperature: </label>
+        <input id="temperature" type="number" name="temperature" value="1" />
+      </div>
+      <div>
+        <label>Stream: </label>
+        <input id="stream" type="checkbox" name="stream" checked />
+      </div>
+      <div>
+        <label>Presence Penalty: </label>
+        <input
+          id="presence_penalty"
+          type="number"
+          name="presence_penalty"
+          value="0"
+        />
+      </div>
+      <button id="saveButton" type="submit">Save</button>
+    </form>
+
+    <div id="success-message" style="display: none; color: green">
+      Parameters saved successfully
     </div>
-    <div>
-      <label>Temperature: </label>
-      <input id="temperature" type="number" name="temperature" value="1">
-    </div>
-    <div>
-      <label>Stream: </label>
-      <input id="stream" type="checkbox" name="stream" checked>
-    </div>
-    <div>
-      <label>Presence Penalty: </label>
-      <input id="presence_penalty" type="number" name="presence_penalty" value="0">
-    </div>
-    <button id="saveButton" type="submit">Save</button>
-  </form>
 
-  <div id="success-message" style="display: none; color: green;">
-    Parameters saved successfully
-  </div>
+    <script>
+      const { ipcRenderer } = require("electron");
+      const { SSE } = require("sse.js");
+      const {
+        getCompletion,
+        getCompletionStream,
+        setLoading,
+      } = require("./js/utils");
+      const { handleButtonPress } = require("./js/handlers");
 
+      let lastClickedCommand;
+      // Add a keydown event listener to the window
+      window.addEventListener("keydown", (event) => {
+        const keyPressed = event.key;
+        const ctrlKey = event.metaKey;
+        const buttonList = document.querySelectorAll("button");
 
-  <script>
-    const { ipcRenderer } = require("electron");
-    const { SSE } = require("sse.js");
-    const { getCompletion, getCompletionStream, setLoading } = require("./js/utils");
-    const { handleButtonPress } = require("./js/handlers");
-
-    let lastClickedCommand;
-    // Add a keydown event listener to the window
-    window.addEventListener("keydown", (event) => {
-      const keyPressed = event.key;
-      const ctrlKey = event.metaKey;
-      const buttonList = document.querySelectorAll("button");
-
-      buttonList.forEach((button) => {
-        const buttonKey = button.getAttribute("data-key");
-        if (keyPressed === buttonKey && ctrlKey) {
-          event.preventDefault();
-          // button.click();
-          console.log("button clicked", buttonKey);
-          setLoading(true);
-          document.getElementById("result").innerText = "";
-          showParametersForm(buttonKey - 1);
-          handleButtonPress(buttonKey);
-        }
+        buttonList.forEach((button) => {
+          const buttonKey = button.getAttribute("data-key");
+          if (keyPressed === buttonKey && ctrlKey) {
+            event.preventDefault();
+            // button.click();
+            console.log("button clicked", buttonKey);
+            setLoading(true);
+            document.getElementById("result").innerText = "";
+            showParametersForm(buttonKey - 1);
+            handleButtonPress(buttonKey);
+          }
+        });
       });
-    });
 
-    const saveButton = document.getElementById("saveButton");
-    saveButton.addEventListener("click", () => {
-      const model = document.getElementById("model").value;
-      const prompt = document.getElementById("prompt").value;
-      const temperature = document.getElementById("temperature").value;
-      const stream = document.getElementById("stream").checked;
-      const presence_penalty = document.getElementById("presence_penalty").value;
+      const saveButton = document.getElementById("saveButton");
+      saveButton.addEventListener("click", () => {
+        const model = document.getElementById("model").value;
+        const prompt = document.getElementById("prompt").value;
+        const temperature = document.getElementById("temperature").value;
+        const stream = document.getElementById("stream").checked;
+        const presence_penalty =
+          document.getElementById("presence_penalty").value;
 
-      localStorage.setItem("model", model);
-      localStorage.setItem("prompt", prompt);
-      localStorage.setItem("temperature", temperature);
-      localStorage.setItem("stream", stream);
-      localStorage.setItem("presence_penalty", presence_penalty);
-    });
+        localStorage.setItem("model", model);
+        localStorage.setItem("prompt", prompt);
+        localStorage.setItem("temperature", temperature);
+        localStorage.setItem("stream", stream);
+        localStorage.setItem("presence_penalty", presence_penalty);
+      });
 
-    // To retrieve:
-    const savedPrompt = localStorage.getItem("prompt");
-    const savedTemperature = localStorage.getItem("temperature");
-    // ... Your existing code ...
+      // To retrieve:
+      const savedPrompt = localStorage.getItem("prompt");
+      const savedTemperature = localStorage.getItem("temperature");
+      // ... Your existing code ...
 
-    // When a command button is clicked, show parameters form with saved parameters
-    document.getElementById("command1").addEventListener("click", () => showParametersForm(0));
-    document.getElementById("command2").addEventListener("click", () => showParametersForm(1));
-    document.getElementById("command3").addEventListener("click", () => showParametersForm(2));
-    document.getElementById("summaryButton").addEventListener("click", () => showParametersForm(3));
+      // When a command button is clicked, show parameters form with saved parameters
+      document
+        .getElementById("command1")
+        .addEventListener("click", () => showParametersForm(0));
+      document
+        .getElementById("command2")
+        .addEventListener("click", () => showParametersForm(1));
+      document
+        .getElementById("command3")
+        .addEventListener("click", () => showParametersForm(2));
+      document
+        .getElementById("summaryButton")
+        .addEventListener("click", () => showParametersForm(3));
 
-    function showParametersForm(index) {
-      let parameters = JSON.parse(localStorage.getItem("parameters")) || [
-        ["gpt-3.5-turbo", "Command 1 prompt", 1, true, 0],  // Default values for Command 1
-        ["gpt-3.5-turbo", "Command 2 prompt", 1, true, 0],  // Default values for Command 2
-        ["gpt-3.5-turbo", "Command 3 prompt", 1, true, 0],  // Default values for Command 3
-        ["gpt-3.5-turbo", "Get summary prompt", 1, true, 0] // Default values for Get Summary
-      ];
-      const commandParameter = parameters[index] || ["gpt-3.5-turbo", "Command 1 prompt", 1, true, 0];
-      document.getElementById("model").value = commandParameter[0];
-      document.getElementById("prompt").value = commandParameter[1];
-      document.getElementById("temperature").value = commandParameter[2];
-      document.getElementById("stream").checked = commandParameter[3];
-      document.getElementById("presence_penalty").value = commandParameter[4];
-      document.getElementById("parameters-form").style.display = "block";
-      lastClickedCommand = index;  // Update last clicked command
-    }
+      function showParametersForm(index) {
+        let parameters = JSON.parse(localStorage.getItem("parameters")) || [
+          ["gpt-3.5-turbo", "Command 1 prompt", 1, true, 0], // Default values for Command 1
+          ["gpt-3.5-turbo", "Command 2 prompt", 1, true, 0], // Default values for Command 2
+          ["gpt-3.5-turbo", "Command 3 prompt", 1, true, 0], // Default values for Command 3
+          ["gpt-3.5-turbo", "Get summary prompt", 1, true, 0], // Default values for Get Summary
+        ];
+        const commandParameter = parameters[index] || [
+          "gpt-3.5-turbo",
+          "Command 1 prompt",
+          1,
+          true,
+          0,
+        ];
+        document.getElementById("model").value = commandParameter[0];
+        document.getElementById("prompt").value = commandParameter[1];
+        document.getElementById("temperature").value = commandParameter[2];
+        document.getElementById("stream").checked = commandParameter[3];
+        document.getElementById("presence_penalty").value = commandParameter[4];
+        document.getElementById("parameters-form").style.display = "block";
+        lastClickedCommand = index; // Update last clicked command
+      }
 
-    // When save button is clicked, save parameters in localStorage
-    saveButton.addEventListener("click", (e) => {
-      e.preventDefault();
-      let parameters = JSON.parse(localStorage.getItem("parameters")) || [];
-      const model = document.getElementById("model").value;
-      const prompt = document.getElementById("prompt").value;
-      const temperature = +document.getElementById("temperature").value;
-      const stream = document.getElementById("stream").checked;
-      const presence_penalty = +document.getElementById("presence_penalty").value;
-      parameters[lastClickedCommand] = [model, prompt, temperature, stream, presence_penalty];
-      localStorage.setItem("parameters", JSON.stringify(parameters));
-      // show success message
-      const successMessage = document.getElementById('success-message');
-      successMessage.style.display = 'block';
-      // hide success message after 2 seconds
-      setTimeout(() => {
-        successMessage.style.display = 'none';
-      }, 2000);
-    });
+      // When save button is clicked, save parameters in localStorage
+      saveButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        let parameters = JSON.parse(localStorage.getItem("parameters")) || [];
+        const model = document.getElementById("model").value;
+        const prompt = document.getElementById("prompt").value;
+        const temperature = +document.getElementById("temperature").value;
+        const stream = document.getElementById("stream").checked;
+        const presence_penalty =
+          +document.getElementById("presence_penalty").value;
+        parameters[lastClickedCommand] = [
+          model,
+          prompt,
+          temperature,
+          stream,
+          presence_penalty,
+        ];
+        localStorage.setItem("parameters", JSON.stringify(parameters));
+        // show success message
+        const successMessage = document.getElementById("success-message");
+        successMessage.style.display = "block";
+        // hide success message after 2 seconds
+        setTimeout(() => {
+          successMessage.style.display = "none";
+        }, 2000);
+      });
 
-
-// ... Rest of your code ...
-
-
-
-
-
-  </script>
-</body>
-
+      document.getElementById("copyButton").addEventListener("click", () => {
+        const result = document.getElementById("result");
+        const range = document.createRange();
+        range.selectNode(result);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand("copy");
+        window.getSelection().removeAllRanges();
+        alert("Result copied to clipboard.");
+      });
+    </script>
+  </body>
 </html>
