@@ -1,5 +1,5 @@
 const { ipcRenderer } = require("electron");
-const { getCompletion, getCompletionStream, setLoading, redditPost, redditTextPost } = require("./utils");
+const { getCompletion, getCompletionStream, setLoading, redditPost, redditTextPost, showGetCompletionStreamParams } = require("./utils");
 const { clipboard } = require('electron');
 
 
@@ -49,11 +49,23 @@ ipcRenderer.on("markdown-contexts", async (event, data) => {
     const { url, title, contexts } = data;
     for (let i = 0; i < contexts.length; i++) {
         const context = contexts[i];
-        const prompt = context + ",summarize above content：";
-        console.log(prompt);
+        // const prompt = context + "\n总结上述内容，以大纲的形式给出，并使用中文。\n";
+        // console.log(prompt);
+        const model = document.getElementById("model").value;
+        const prompt = context + document.getElementById("prompt").value;
+        const temperature = +document.getElementById("temperature").value;
+        const stream = document.getElementById("stream").checked;
+        const presencePenalty = +document.getElementById("presence_penalty").value;
+
         const response = await getCompletionStream(
             prompt,
-            "gpt-3.5-turbo",
+            {
+                model,
+                temperature,
+                stream,
+                presence_penalty: presencePenalty
+            },
+
             (chunk) => {
                 setLoading(false);
                 document.getElementById("result").innerText += chunk;

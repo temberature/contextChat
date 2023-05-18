@@ -32,9 +32,10 @@ async function getCompletion(prompt, model = "gpt-3.5-turbo") {
     const data = await response.json();
     return data.choices[0].message.content;
 }
+
 async function getCompletionStream(
     prompt,
-    model = "gpt-3.5-turbo",
+    options,
     callback
 ) {
     return new Promise((resolve, reject) => {
@@ -44,6 +45,8 @@ async function getCompletionStream(
             messages: [{ role: "user", content: prompt }],
             temperature: 1,
             stream: true,
+            presence_penalty: 0,
+            ...options,
         };
 
         const source = new SSE(`https://api.openai.com/v1/chat/completions`, {
