@@ -1,5 +1,5 @@
 const { ipcRenderer } = require("electron");
-const { getCompletion, getCompletionStream, setLoading, redditPost, redditTextPost, showGetCompletionStreamParams } = require("./utils");
+const { getCompletion, getCompletionStream, setLoading, redditPost, redditTextPost, getParametersFromLocalStorage } = require("./utils");
 const { clipboard } = require('electron');
 
 
@@ -51,14 +51,13 @@ ipcRenderer.on("markdown-contexts", async (event, data) => {
         const context = contexts[i];
         // const prompt = context + "\n总结上述内容，以大纲的形式给出，并使用中文。\n";
         // console.log(prompt);
-        const model = document.getElementById("model").value;
-        const prompt = context + document.getElementById("prompt").value;
-        const temperature = +document.getElementById("temperature").value;
-        const stream = document.getElementById("stream").checked;
-        const presencePenalty = +document.getElementById("presence_penalty").value;
+        
+        // Call the function and store its return value in a variable
+        const parameters = getParametersFromLocalStorage();
+        const [model, prompt, temperature, stream, presencePenalty] = parameters[3];
 
         const response = await getCompletionStream(
-            prompt,
+            context + prompt,
             {
                 model,
                 temperature,

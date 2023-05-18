@@ -131,11 +131,21 @@ function redditTextPost(title, text, subredditName="thirdbrain") {
         .catch(console.error);
 }
 
+function getParametersFromLocalStorage() {
+    const parameters = JSON.parse(localStorage.getItem("parameters")) || [
+        ["gpt-3.5-turbo", "Command 1 prompt", 1, true, 0],  // Default values for Command 1
+        ["gpt-3.5-turbo", "Command 2 prompt", 1, true, 0],  // Default values for Command 2
+        ["gpt-3.5-turbo", "Command 3 prompt", 1, true, 0],  // Default values for Command 3
+        ["gpt-3.5-turbo", "Get summary prompt", 1, true, 0] // Default values for Get Summary
+    ];
+    return parameters;
+}
 
 module.exports = {
     getCompletion,
     getCompletionStream,
     setLoading,
     redditPost,
-    redditTextPost
+    redditTextPost,
+    getParametersFromLocalStorage
 };
