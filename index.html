@@ -63,10 +63,18 @@
   </div>
 
   <div id="result"></div>
-  <form>
+  <form id="parameters-form" style="display: none;">
     <div>
-      <label>Model: </label>
-      <input id="model" type="text" name="model" value="gpt-3.5-turbo">
+      <label for="model-input">Model:</label>
+      <select id="model">
+        <option value="" disabled>Select a model</option>
+        <option value="gpt-4">gpt-4</option>
+        <option value="gpt-4-0314">gpt-4-0314</option>
+        <option value="gpt-4-32k" disabled>gpt-4-32k</option>
+        <option value="gpt-4-32k-0314" disabled>gpt-4-32k-0314</option>
+        <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
+        <option value="gpt-3.5-turbo-0301">gpt-3.5-turbo-0301</option>
+      </select>
     </div>
     <div>
       <label>Prompt: </label>
@@ -84,46 +92,109 @@
       <label>Presence Penalty: </label>
       <input id="presence_penalty" type="number" name="presence_penalty" value="0">
     </div>
-    <button type="submit">Submit</button>
+    <button id="saveButton" type="submit">Save</button>
   </form>
+
+  <div id="success-message" style="display: none; color: green;">
+    Parameters saved successfully
+  </div>
+
 
   <script>
     const { ipcRenderer } = require("electron");
     const { SSE } = require("sse.js");
     const { getCompletion, getCompletionStream, setLoading } = require("./js/utils");
     const { handleButtonPress } = require("./js/handlers");
-    // const summaryButton = document.getElementById("summaryButton");
-    // summaryButton.addEventListener("click", () => {
-    //   setLoading(true);
-    //   ipcRenderer.send("get-summary");
-    // });
 
-    // ipcRenderer.on("summary-result", (event, markdownResult) => {
-    //   setLoading(false);
-    //   document.getElementById("result").innerText = markdownResult;
-    // });
-
-
-    // Add more event listeners for the other command buttons here.
-    // Example: document.getElementById('command1').addEventListener('click', yourFunctionForCommand1);
-
+    let lastClickedCommand;
     // Add a keydown event listener to the window
     window.addEventListener("keydown", (event) => {
       const keyPressed = event.key;
+      const ctrlKey = event.metaKey;
       const buttonList = document.querySelectorAll("button");
 
       buttonList.forEach((button) => {
         const buttonKey = button.getAttribute("data-key");
-        if (keyPressed === buttonKey) {
+        if (keyPressed === buttonKey && ctrlKey) {
           event.preventDefault();
           // button.click();
           console.log("button clicked", buttonKey);
           setLoading(true);
           document.getElementById("result").innerText = "";
+          showParametersForm(buttonKey - 1);
           handleButtonPress(buttonKey);
         }
       });
     });
+
+    const saveButton = document.getElementById("saveButton");
+    saveButton.addEventListener("click", () => {
+      const model = document.getElementById("model").value;
+      const prompt = document.getElementById("prompt").value;
+      const temperature = document.getElementById("temperature").value;
+      const stream = document.getElementById("stream").checked;
+      const presence_penalty = document.getElementById("presence_penalty").value;
+
+      localStorage.setItem("model", model);
+      localStorage.setItem("prompt", prompt);
+      localStorage.setItem("temperature", temperature);
+      localStorage.setItem("stream", stream);
+      localStorage.setItem("presence_penalty", presence_penalty);
+    });
+
+    // To retrieve:
+    const savedPrompt = localStorage.getItem("prompt");
+    const savedTemperature = localStorage.getItem("temperature");
+    // ... Your existing code ...
+
+    // When a command button is clicked, show parameters form with saved parameters
+    document.getElementById("command1").addEventListener("click", () => showParametersForm(0));
+    document.getElementById("command2").addEventListener("click", () => showParametersForm(1));
+    document.getElementById("command3").addEventListener("click", () => showParametersForm(2));
+    document.getElementById("summaryButton").addEventListener("click", () => showParametersForm(3));
+
+    function showParametersForm(index) {
+      let parameters = JSON.parse(localStorage.getItem("parameters")) || [
+        ["gpt-3.5-turbo", "Command 1 prompt", 1, true, 0],  // Default values for Command 1
+        ["gpt-3.5-turbo", "Command 2 prompt", 1, true, 0],  // Default values for Command 2
+        ["gpt-3.5-turbo", "Command 3 prompt", 1, true, 0],  // Default values for Command 3
+        ["gpt-3.5-turbo", "Get summary prompt", 1, true, 0] // Default values for Get Summary
+      ];
+      const commandParameter = parameters[index] || ["gpt-3.5-turbo", "Command 1 prompt", 1, true, 0];
+      document.getElementById("model").value = commandParameter[0];
+      document.getElementById("prompt").value = commandParameter[1];
+      document.getElementById("temperature").value = commandParameter[2];
+      document.getElementById("stream").checked = commandParameter[3];
+      document.getElementById("presence_penalty").value = commandParameter[4];
+      document.getElementById("parameters-form").style.display = "block";
+      lastClickedCommand = index;  // Update last clicked command
+    }
+
+    // When save button is clicked, save parameters in localStorage
+    saveButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      let parameters = JSON.parse(localStorage.getItem("parameters")) || [];
+      const model = document.getElementById("model").value;
+      const prompt = document.getElementById("prompt").value;
+      const temperature = +document.getElementById("temperature").value;
+      const stream = document.getElementById("stream").checked;
+      const presence_penalty = +document.getElementById("presence_penalty").value;
+      parameters[lastClickedCommand] = [model, prompt, temperature, stream, presence_penalty];
+      localStorage.setItem("parameters", JSON.stringify(parameters));
+      // show success message
+      const successMessage = document.getElementById('success-message');
+      successMessage.style.display = 'block';
+      // hide success message after 2 seconds
+      setTimeout(() => {
+        successMessage.style.display = 'none';
+      }, 2000);
+    });
+
+
+// ... Rest of your code ...
+
+
+
 
 
   </script>
