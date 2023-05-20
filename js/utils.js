@@ -1,5 +1,7 @@
 const snoowrap = require('snoowrap');
 const fetch = require('node-fetch');
+const path = require('path');
+const fs = require('fs');
 
 function setLoading(loading) {
     const loadingElement = document.getElementById("loading");
@@ -74,6 +76,7 @@ async function getCompletionStream(
                 }
             }
         });
+        let response = "";
         source.addEventListener("message", function (e) {
             // Assuming we receive JSON-encoded data payloads:
             console.log(e.data);
@@ -84,15 +87,12 @@ async function getCompletionStream(
                 if (!data.choices[0].delta.content) {
                     return;
                 }
-                if (first) {
-                    chunk = data.choices[0].delta.content;
-                    first = false;
-                } else {
-                    chunk = data.choices[0].delta.content;
-                }
+                chunk = data.choices[0].delta.content;
+                response += chunk;
+
                 callback(chunk);
             } else {
-                resolve();
+                resolve(response);
             }
         });
         source.stream();
@@ -141,11 +141,25 @@ function getParametersFromLocalStorage() {
     return parameters;
 }
 
+function saveToMarkdown(request, response) {
+    const markdownText = `# Request\n\n${request}\n\n# Response\n\n${response}\n\n---\n\n`;
+    const filePath = path.join(__dirname + "/../", 'history.md');
+    //append data to file
+    fs.appendFile(filePath, markdownText, (err) => {
+        if (err) {
+            console.error('Error writing file:', err);
+        } else {
+            console.log('File written successfully');
+        }
+    });
+}
+
 module.exports = {
     getCompletion,
     getCompletionStream,
     setLoading,
     redditPost,
     redditTextPost,
-    getParametersFromLocalStorage
+    getParametersFromLocalStorage,
+    saveToMarkdown
 };
