@@ -30,11 +30,21 @@ async function createDialogues() {
         placeholder: 'Planet name',
         callback: async function (value) {
             console.log(value)
-            const prompt = `Could you please create three brief, hypothetical, one-round dialogues in the style of the characters from the TV show "Person of Interest" with background, where each dialogue incorporates "${value}"?\n\n`;
+            // const prompt = `Could you please create three brief, hypothetical, one-round dialogues in the style of the characters from the TV show "Person of Interest" with background, where each dialogue incorporates "${value}"?\n\n`;
+            
+            // Call the function and store its return value in a variable
+            const parameters = getParametersFromLocalStorage();
+            let [model, prompt, temperature, stream, presencePenalty] = parameters[0];
+            prompt = prompt.replace("${value}", value);
             document.getElementById("result").innerText += prompt;
             const response = await getCompletionStream(
                 prompt,
-                "gpt-3.5-turbo",
+                {
+                    model,
+                    temperature,
+                    stream,
+                    presence_penalty: presencePenalty
+                },
                 (chunk) => {
                     setLoading(false);
                     document.getElementById("result").innerText += chunk;
