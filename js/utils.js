@@ -143,7 +143,7 @@ function getParametersFromLocalStorage() {
 }
 
 function getLastUuidFromFile() {
-    const filePath = path.join(__dirname + "/../", 'history.md');
+    const filePath = path.join(__dirname + "/../history/", 'history.md');
     const data = fs.readFileSync(filePath, 'utf8');
 
     // Split the file by the markdown separator
@@ -164,12 +164,12 @@ function getLastUuidFromFile() {
 
 
 
-function saveToMarkdown(request, response, newChat = false) {
+function saveToHistory(request, response, newChat = false) {
     // Generate a UUID for the dialogue
 
     const uuid = newChat ? uuidv4() : getLastUuidFromFile();
     const markdownText = `# Chat UUID: ${uuid}\n\n# User\n\n${request}\n\n# Assitant\n\n${response}\n\n---\n\n`;
-    const filePath = path.join(__dirname + "/../", 'history.md');
+    const filePath = path.join(__dirname + "/../history/", 'history.md');
     //append data to file
     fs.appendFile(filePath, markdownText, (err) => {
         if (err) {
@@ -178,10 +178,48 @@ function saveToMarkdown(request, response, newChat = false) {
             console.log('File written successfully');
         }
     });
+    return uuid;
+}
+
+// Function to sanitize a string to be safe for a filename
+function sanitizeFilename(name) {
+    return name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+}
+
+function updateDesires(desires, uuid) {
+    desires.forEach((desire) => {
+
+        const filename = desire.split(".")[1].trim();
+        const markdownText = uuid + "\n";
+        const filePath = path.join(__dirname + "/../history/", `${filename}.md`);
+        fs.appendFile(filePath, markdownText, (err) => {
+            if (err) {
+                console.error('Error writing file:', err);
+            } else {
+                console.log('File written successfully');
+            }
+        });
+    });
+}
+
+function readAllDesires() {
+    // Define the path to the directory
+    const dirPath = path.join(__dirname + "/../history/");
+
+    // Read all the file names in the directory
+    const files = fs.readdirSync(dirPath);
+
+    // Filter out 'history.md' and any non-md files
+    const desireFiles = files.filter(file => file !== 'history.md' && path.extname(file) === '.md');
+
+    // If you want just the desire names without the '.md' extension, you can use map
+    const desires = desireFiles.map(file => path.basename(file, '.md'));
+
+    return desires;
 }
 
 function readLastChatHistoryFile() {
-    const filePath = path.join(__dirname + "/../", 'history.md');
+    const filePath = path.join(__dirname + "/../history/", 'history.md');
     const data = fs.readFileSync(filePath, 'utf8');
     const chats = data.split('---\n\n').filter(chat => chat !== ''); // Split the file content by '---\n\n'
     console.log(chats);
@@ -196,6 +234,8 @@ module.exports = {
     redditPost,
     redditTextPost,
     getParametersFromLocalStorage,
-    saveToMarkdown,
-    readLastChatHistoryFile
+    saveToHistory,
+    readLastChatHistoryFile,
+    updateDesires,
+    readAllDesires
 };
