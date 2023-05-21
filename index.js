@@ -21,8 +21,8 @@ const encoding = new Tiktoken(
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1000,
+    height: 720,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,

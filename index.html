@@ -9,7 +9,7 @@
         font-family: "Arial", sans-serif;
         background-color: #f3f3f3;
         color: #333;
-        padding-bottom: 100px;
+        padding-bottom: 120px;
       }
 
       /* Button styles */
@@ -150,7 +150,7 @@
     <div id="success-message" style="display: none; color: green">
       Parameters saved successfully
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
       const { ipcRenderer } = require("electron");
       const { SSE } = require("sse.js");
@@ -158,8 +158,16 @@
         getCompletion,
         getCompletionStream,
         setLoading,
+        readLastChatHistoryFile
       } = require("./js/utils");
-      const { handleButtonPress } = require("./js/handlers");
+      const { handleButtonPress, chat } = require("./js/handlers");
+      const fs = require("fs");
+      const path = require("path");
+
+
+
+      let lastChat = readLastChatHistoryFile();
+      document.getElementById('result').innerHTML = marked.parse(lastChat);
 
       let lastClickedCommand;
       // Add a keydown event listener to the window
@@ -174,7 +182,7 @@
             event.preventDefault();
             // button.click();
             console.log("button clicked", buttonKey);
-            
+
             handleButtonPress(buttonKey);
           }
         });
@@ -276,6 +284,23 @@
         alert("Result copied to clipboard.");
       });
 
+      const textArea = document.getElementById("user-message");
+      textArea.addEventListener("keyup", async function (event) {
+        // Number 13 is the "Enter" key on the keyboard
+        
+        if (event.keyCode === 13 && !window.lastButtonKey) {
+          console.log(window.lastButtonKey);
+          event.preventDefault();
+          await chat();
+        }
+      });
+      textArea.addEventListener("keydown", function (event) {
+        // Number 13 is the "Enter" key on the keyboard
+        if (event.keyCode === 13) {
+          event.preventDefault(); // Prevents the default 'Enter' action (new line)
+
+        }
+      });
     </script>
   </body>
 </html>
