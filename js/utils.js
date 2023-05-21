@@ -2,6 +2,7 @@ const snoowrap = require('snoowrap');
 const fetch = require('node-fetch');
 const path = require('path');
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 
 function setLoading(loading) {
     const loadingElement = document.getElementById("loading");
@@ -79,7 +80,7 @@ async function getCompletionStream(
         let response = "";
         source.addEventListener("message", function (e) {
             // Assuming we receive JSON-encoded data payloads:
-            console.log(e.data);
+            // console.log(e.data);
             if (e.data !== "[DONE]") {
                 var data = JSON.parse(e.data);
                 // console.log(data);
@@ -141,8 +142,33 @@ function getParametersFromLocalStorage() {
     return parameters;
 }
 
-function saveToMarkdown(request, response) {
-    const markdownText = `# Request\n\n${request}\n\n# Response\n\n${response}\n\n---\n\n`;
+function getLastUuidFromFile() {
+    const filePath = path.join(__dirname + "/../", 'history.md');
+    const data = fs.readFileSync(filePath, 'utf8');
+
+    // Split the file by the markdown separator
+    const sections = data.split('---').filter((section) => section.length > 0 && section !== '\n\n');
+    console.log(sections);
+    // Get the last section
+    const lastSection = sections[sections.length - 1];
+
+    // Extract the UUID from the last section
+    const uuidMatch = lastSection.match(/Chat UUID: (\S+)/);
+    if (uuidMatch) {
+        return uuidMatch[1];
+    } else {
+        return null;
+    }
+}
+
+
+
+
+function saveToMarkdown(request, response, newChat = false) {
+    // Generate a UUID for the dialogue
+
+    const uuid = newChat ? uuidv4() : getLastUuidFromFile();
+    const markdownText = `# Chat UUID: ${uuid}\n\n# User\n\n${request}\n\n# Assitant\n\n${response}\n\n---\n\n`;
     const filePath = path.join(__dirname + "/../", 'history.md');
     //append data to file
     fs.appendFile(filePath, markdownText, (err) => {
@@ -154,6 +180,15 @@ function saveToMarkdown(request, response) {
     });
 }
 
+function readLastChatHistoryFile() {
+    const filePath = path.join(__dirname + "/../", 'history.md');
+    const data = fs.readFileSync(filePath, 'utf8');
+    const chats = data.split('---\n\n').filter(chat => chat !== ''); // Split the file content by '---\n\n'
+    console.log(chats);
+    const lastChat = chats[chats.length - 1]; // Get the last chat
+    return lastChat;
+  }
+
 module.exports = {
     getCompletion,
     getCompletionStream,
@@ -161,5 +196,6 @@ module.exports = {
     redditPost,
     redditTextPost,
     getParametersFromLocalStorage,
-    saveToMarkdown
+    saveToMarkdown,
+    readLastChatHistoryFile
 };

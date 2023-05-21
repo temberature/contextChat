@@ -14,7 +14,11 @@ var vex = require("vex-js");
 vex.registerPlugin(require("vex-dialog"));
 vex.defaultOptions.className = "vex-theme-os";
 
-function handleButtonPress(buttonKey) {
+window.lastButtonKey = null;
+
+async function handleButtonPress(buttonKey) {
+  window.lastButtonKey = buttonKey;
+
   if (buttonKey !== 3) {
     setLoading(true);
     document.getElementById("result").innerText = "";
@@ -23,47 +27,49 @@ function handleButtonPress(buttonKey) {
 
   switch (buttonKey) {
     case 1:
-      createResponse(0);
+      createDialogues();
       break;
     case 2:
-      createResponse(1);
+      relatedConcepts();
       break;
     case 3:
-      chat();
+      await createChat();
       break;
     case 4:
       summarize();
 
       break;
   }
+
 }
 
-// Create a promise that resolves when the 'Enter' key is pressed
-const waitForEnter = new Promise((resolve) => {
-  const textArea = document.getElementById("user-message");
-  textArea.addEventListener("keyup", function (event) {
-    // Number 13 is the "Enter" key on the keyboard
-    if (event.keyCode === 13) {
-      event.preventDefault();
-      resolve();
-    }
-  });
-  textArea.addEventListener("keydown", function (event) {
-    // Number 13 is the "Enter" key on the keyboard
-    if (event.keyCode === 13) {
-      event.preventDefault(); // Prevents the default 'Enter' action (new line)
-    }
-  });
-});
-
-async function chat() {
+async function createChat() {
   // Select the textarea
   const textArea = document.getElementById("user-message");
   textArea.value = clipboard.readText();
   textArea.focus();
+  await waitChat();
+  await chat(true);
+}
 
+async function waitChat() {
+  // Create a promise that resolves when the 'Enter' key is pressed
+  const waitForEnter = new Promise((resolve) => {
+    const textArea = document.getElementById("user-message");
+    textArea.addEventListener("keyup", function (event) {
+      // Number 13 is the "Enter" key on the keyboard
+      if (event.keyCode === 13) {
+        event.preventDefault();
+        textArea.removeEventListener("keyup", arguments.callee);
+        resolve();
+      }
+    });
+  });
   // Wait for the 'Enter' key to be pressed
   await waitForEnter;
+}
+async function chat(newChat = false) {
+
 
   setLoading(true);
   document.getElementById("result").innerText = "";
@@ -96,7 +102,17 @@ async function chat() {
       document.getElementById("result").innerText += chunk;
     }
   );
-  saveToMarkdown(prompt, response);
+  saveToMarkdown(prompt, response, newChat);
+  await waitChat();
+  await chat();
+}
+
+function createDialogues() {
+  createResponse(0);
+}
+
+function relatedConcepts() {
+  createResponse(1);
 }
 async function createResponse(index) {
   console.log("createResponse");
@@ -133,6 +149,7 @@ async function createResponse(index) {
 
 ipcRenderer.on("markdown-contexts", async (event, data) => {
   const { url, title, contexts } = data;
+  document.getElementById("result").innerText += title + "\n" + url + "\n\n";
   let response = "";
   for (let i = 0; i < contexts.length; i++) {
     const context = contexts[i];
@@ -177,4 +194,5 @@ async function summarize() {
 
 module.exports = {
   handleButtonPress,
+  chat
 };
