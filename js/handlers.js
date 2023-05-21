@@ -6,7 +6,9 @@ const {
   redditPost,
   redditTextPost,
   getParametersFromLocalStorage,
-  saveToMarkdown,
+  saveToHistory,
+  updateDesires,
+  readAllDesires
 } = require("./utils");
 const { clipboard } = require("electron");
 
@@ -59,10 +61,25 @@ async function waitChat() {
     textArea.addEventListener("keyup", function (event) {
       // Number 13 is the "Enter" key on the keyboard
       if (event.keyCode === 13) {
+        console.log("Enter pressed");
         event.preventDefault();
         textArea.removeEventListener("keyup", arguments.callee);
         resolve();
       }
+    });
+    window.addEventListener("keydown", (event) => {
+      const keyPressed = +event.key;
+      const ctrlKey = event.metaKey;
+      const buttonList = document.querySelectorAll("button");
+
+      buttonList.forEach((button) => {
+        const buttonKey = +button.getAttribute("data-key");
+        if (keyPressed === buttonKey && ctrlKey) {
+          event.preventDefault();
+          textArea.removeEventListener("keyup", arguments.callee);
+          reject();
+        }
+      });
     });
   });
   // Wait for the 'Enter' key to be pressed
@@ -87,10 +104,11 @@ async function chat(newChat = false) {
     true,
     0,
   ];
-  prompt = userMessage;
-  document.getElementById("result").innerText += prompt + "\n\n";
-  const response = await getCompletionStream(
-    prompt,
+  const desires = readAllDesires();
+  const chatPrompt = `我的长期需要和兴趣：\n${desires.join('\n')}\n${userMessage}`;
+  document.getElementById("result").innerText += userMessage + "\n\n";
+  let response = await getCompletionStream(
+    chatPrompt,
     {
       model,
       temperature,
@@ -102,7 +120,23 @@ async function chat(newChat = false) {
       document.getElementById("result").innerText += chunk;
     }
   );
-  saveToMarkdown(prompt, response, newChat);
+  document.getElementById("result").innerText += "\n\n";
+  const uuid = saveToHistory(chatPrompt, response, newChat);
+  response = await getCompletionStream(
+    `"${userMessage}"\n` + prompt,
+    {
+      model,
+      temperature,
+      stream,
+      presence_penalty: presencePenalty,
+    },
+    (chunk) => {
+      setLoading(false);
+      document.getElementById("result").innerText += chunk;
+    }
+  );
+  console.log(response);
+  updateDesires(response.split("\n"), uuid);
   await waitChat();
   await chat();
 }
