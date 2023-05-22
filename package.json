@@ -1,31 +1,72 @@
 {
   "name": "contextchat",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "ContextChat is an interactive application to leverage the power of AI models for generating relevant and coherent responses for users. The application is built with JavaScript and Electron, and it uses OpenAI's models for the chat interface.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron .",
-    "postinstall": "./node_modules/.bin/electron-rebuild install-app-deps"
+    "postinstall": "./node_modules/.bin/electron-rebuild install-app-deps",
+    "pack": "electron-builder --dir",
+    "build": "electron-builder -mwl",
+    "clean": "rimraf build",
+    "prebuild": "npm run clean"
+  },
+  "build": {
+    "appId": "com.electron.contextchat",
+    "mac": {
+      "category": "your.app.category.type"
+    },
+    "win": {
+      "target": "portable"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "yourname",
+        "repo": "yourrepo",
+        "releaseType": "draft"
+      }
+    ],
+    "directories": {
+      "output": "build"
+    },
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}",
+      "!.env"
+    ]
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@electron/rebuild": "^3.2.13",
-    "electron": "^24.2.0"
+    "electron": "^24.2.0",
+    "electron-builder": "^23.6.0",
+    "rimraf": "^5.0.1"
   },
   "dependencies": {
     "@dqbd/tiktoken": "^1.0.7",
-    "@electron/remote": "^2.0.9",
     "@mozilla/readability": "^0.4.4",
     "axios": "^1.4.0",
     "dotenv": "^16.0.3",
-    "electron-prompt": "^1.7.0",
-    "franc-min": "^6.1.0",
     "jsdom": "^22.0.0",
+    "marked-gfm-heading-id": "^3.0.3",
     "puppeteer": "^20.1.2",
-    "robotjs": "^0.6.0",
     "snoowrap": "^1.23.0",
     "sse.js": "^0.6.1",
     "turndown": "^7.1.2",

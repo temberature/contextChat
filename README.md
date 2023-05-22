@@ -1,3 +1,5 @@
+[English](README.md) [中文](README.zh.md) 
+
 # ContextChat
 
 ContextChat is an interactive application to leverage the power of AI models for generating relevant and coherent responses for users. The application is built with JavaScript and Electron, and it uses OpenAI's models for the chat interface.
@@ -37,7 +39,6 @@ yarn start
 
 - Run the application. 
 - If you are running the application for the first time, you will be prompted to enter your OpenAI API Key. After entering the key, the application will reload.
-- Use the number keys to trigger the corresponding prompts.
 - Customize the prompts and model parameters as needed.
 - Use the chat area to interact with the AI model.
 - Press `ctrl` + `[number]` to quickly execute a command.

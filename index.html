@@ -81,17 +81,38 @@
         width: 100px; /* Adjust this value as needed */
         float: right;
       }
+
+      #env-form {
+        display: none;
+      }
     </style>
     <link rel="stylesheet" href="./css/vex.css" />
     <link rel="stylesheet" href="./css/vex-theme-os.css" />
   </head>
 
   <body>
+    <form id="env-form">
+      <label for="api-key">API Key</label>
+      <input type="text" id="api-key" name="api-key" required />
+
+      <input type="submit" value="Submit" />
+    </form>
+
     <p>Press the number keys to trigger the corresponding prompts:</p>
-    <button id="command1" data-key="1">1. Create Dialogues</button>
-    <button id="command2" data-key="2">2. Command 2</button>
-    <button id="command3" data-key="3">3. Command 3</button>
-    <button id="summaryButton" data-key="4">4. Get summary</button>
+    <button id="command1" class="commandBtn" data-key="1">
+      1. Create Dialogues
+    </button>
+    <button id="command2" class="commandBtn" data-key="2">
+      2. relatedConcepts
+    </button>
+    <button id="command3" class="commandBtn" data-key="3">3. Chat</button>
+    <button id="summaryButton" class="commandBtn" data-key="4">
+      4. Get summary
+    </button>
+    <button id="command5" class="commandBtn" data-key="5">
+      5. generalTerm
+    </button>
+    <button id="command6" class="commandBtn" data-key="6">6. Command 6</button>
     <div id="loading" style="display: none">
       <p>Loading...</p>
     </div>
@@ -114,7 +135,7 @@
       </div>
       <div>
         <label>Prompt: </label>
-        <textarea id="prompt" name="prompt" value="">
+        <textarea id="prompt" name="prompt" rows="10">
 \n总结上述内容，以大纲的形式给出，并使用中文。\n</textarea
         >
       </div>
@@ -153,21 +174,25 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
       const { ipcRenderer } = require("electron");
-      const { SSE } = require("sse.js");
       const {
         getCompletion,
         getCompletionStream,
         setLoading,
-        readLastChatHistoryFile
+        readLastChatHistoryFile,
       } = require("./js/utils");
       const { handleButtonPress, chat } = require("./js/handlers");
       const fs = require("fs");
       const path = require("path");
 
+      // Set options
+      marked.use({
+        mangle: false,
+        headerIds: false,
+      });
 
-
-      let lastChat = readLastChatHistoryFile();
-      document.getElementById('result').innerHTML = marked.parse(lastChat);
+      let lastChat = readLastChatHistoryFile().replaceAll("\n", "\n\n");
+      console.log("lastChat", lastChat);
+      document.getElementById("result").innerHTML = marked.parse(lastChat);
 
       let lastClickedCommand;
       // Add a keydown event listener to the window
@@ -210,19 +235,15 @@
       // ... Your existing code ...
 
       // When a command button is clicked, show parameters form with saved parameters
-      document
-        .getElementById("command1")
-        .addEventListener("click", () => showParametersForm(0));
-      document
-        .getElementById("command2")
-        .addEventListener("click", () => showParametersForm(1));
-      document
-        .getElementById("command3")
-        .addEventListener("click", () => showParametersForm(2));
-      document
-        .getElementById("summaryButton")
-        .addEventListener("click", () => showParametersForm(3));
 
+      Array.from(document.getElementsByClassName("commandBtn")).forEach(
+        (button) => {
+          button.addEventListener("click", () => {
+            lastClickedCommand = button.getAttribute("data-key");
+            showParametersForm(lastClickedCommand - 1);
+          });
+        }
+      );
       function showParametersForm(index) {
         let parameters = JSON.parse(localStorage.getItem("parameters")) || [
           ["gpt-3.5-turbo", "Command 1 prompt", 1, true, 0], // Default values for Command 1
@@ -287,7 +308,7 @@
       const textArea = document.getElementById("user-message");
       textArea.addEventListener("keyup", async function (event) {
         // Number 13 is the "Enter" key on the keyboard
-        
+
         if (event.keyCode === 13 && !window.lastButtonKey) {
           console.log(window.lastButtonKey);
           event.preventDefault();
@@ -298,9 +319,22 @@
         // Number 13 is the "Enter" key on the keyboard
         if (event.keyCode === 13) {
           event.preventDefault(); // Prevents the default 'Enter' action (new line)
-
         }
       });
+
+      // show api key form if no api key is set
+      const apiKey = localStorage.getItem('OPENAI_API_KEY');
+      if (!apiKey) {
+        document.getElementById("env-form").style.display = "block";
+      }
+      document
+        .getElementById("env-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          const apiKey = document.getElementById("api-key").value;
+          localStorage.setItem('OPENAI_API_KEY', apiKey);
+          window.location.reload();
+        });
     </script>
   </body>
 </html>

@@ -39,7 +39,9 @@ async function handleButtonPress(buttonKey) {
       break;
     case 4:
       summarize();
-
+      break;
+    case 5:
+      generalTerm();
       break;
   }
 
@@ -105,8 +107,10 @@ async function chat(newChat = false) {
     0,
   ];
   const desires = readAllDesires();
-  const chatPrompt = `我的长期需要和兴趣：\n${desires.join('\n')}\n${userMessage}`;
-  document.getElementById("result").innerText += userMessage + "\n\n";
+  const randomDesires = desires.sort(() => 0.5 - Math.random()).slice(0, 3);
+  console.log(randomDesires);
+  const chatPrompt = `我的长期需要和兴趣：\n${randomDesires.join('\n')}\n请结合上述我的长期需要和兴趣给出回应"${userMessage}"`;
+  document.getElementById("result").innerText += chatPrompt + "\n\n";
   let response = await getCompletionStream(
     chatPrompt,
     {
@@ -148,6 +152,11 @@ function createDialogues() {
 function relatedConcepts() {
   createResponse(1);
 }
+
+function generalTerm() {
+  createResponse(4);
+}
+
 async function createResponse(index) {
   console.log("createResponse");
   vex.dialog.prompt({
@@ -159,47 +168,56 @@ async function createResponse(index) {
         return;
       }
       
-      // const prompt = `Could you please create three brief, hypothetical, one-round dialogues in the style of the characters from the TV show "Person of Interest" with background, where each dialogue incorporates "${value}"?\n\n`;
+      const context = clipboard.readText();
 
       // Call the function and store its return value in a variable
       const parameters = getParametersFromLocalStorage();
       let [model, prompt, temperature, stream, presencePenalty] =
         parameters[index];
-      prompt = prompt.replace("${value}", value);
-      document.getElementById("result").innerText += prompt + "\n\n";
-      const response = await getCompletionStream(
-        prompt,
-        {
-          model,
-          temperature,
-          stream,
-          presence_penalty: presencePenalty,
-        },
-        (chunk) => {
-          setLoading(false);
-          document.getElementById("result").innerText += chunk;
-        }
-      );
-      saveToHistory(prompt, response);
+      prompt = prompt.replaceAll("${value}", value);
+      const prompts = prompt.split("\n\n");
+      for (let i = 0; i < prompts.length; i++) {
+
+        const finalPrompt = `context: ${context}\n\n${prompts[i]}`;
+        document.getElementById("result").innerText += finalPrompt + "\n\n";
+        const response = await getCompletionStream(
+          finalPrompt,
+          {
+            model,
+            temperature,
+            stream,
+            presence_penalty: presencePenalty,
+          },
+          (chunk) => {
+            setLoading(false);
+            document.getElementById("result").innerText += chunk;
+          }
+        );
+        const uuid = saveToHistory(prompt, response);
+        updateDesires(["1.提高英语沟通能力"], uuid);
+      }
     },
   });
 }
 
 ipcRenderer.on("markdown-contexts", async (event, data) => {
   const { url, title, contexts } = data;
-  document.getElementById("result").innerText += title + "\n" + url + "\n\n";
+  let result = "";
+  result += title + "\n" + url + "\n\n";
+  document.getElementById("result").innerHTML = marked.parse(result);
   let response = "";
+  const parameters = getParametersFromLocalStorage();
+
+  const [model, summarizePrompt, temperature, stream, presencePenalty] = parameters[3];
   for (let i = 0; i < contexts.length; i++) {
     const context = contexts[i];
     // const prompt = context + "\n总结上述内容，以大纲的形式给出，并使用中文。\n";
     // console.log(prompt);
 
     // Call the function and store its return value in a variable
-    const parameters = getParametersFromLocalStorage();
-    const [model, prompt, temperature, stream, presencePenalty] = parameters[3];
 
     response += await getCompletionStream(
-      context + prompt,
+      context + summarizePrompt,
       {
         model,
         temperature,
@@ -209,20 +227,24 @@ ipcRenderer.on("markdown-contexts", async (event, data) => {
 
       (chunk) => {
         setLoading(false);
-        document.getElementById("result").innerText += chunk;
+        result += chunk;
+        document.getElementById("result").innerHTML = marked.parse(result);
       }
     );
-
-    document.getElementById("result").innerText += "\n\n";
+    result += "\n\n";
+    document.getElementById("result").innerHTML = marked.parse(result);
   }
-  saveToMarkdown(`${title}\n${url}\n${prompt}`, response);
-  document.getElementById("result").innerText += "（AI generated content）";
+  const request = `${title}\n${url}\n${summarizePrompt}`;
+  console.log(title, url, summarizePrompt, response);
+  saveToHistory(request, response);
+  result += "（AI generated content）";
+  document.getElementById("result").innerHTML = marked.parse(result);
   if (!title) {
     return;
   }
   redditTextPost(
     title,
-    url + "\n\n" + document.getElementById("result").innerText
+    url + "\n\n" + result
   );
 });
 
