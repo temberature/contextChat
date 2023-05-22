@@ -26,7 +26,7 @@ async function getCompletion(prompt, model = "gpt-3.5-turbo") {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ***REMOVED***`,
+                Authorization: `Bearer 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`,
             },
             body: JSON.stringify(requestBody),
         }
@@ -56,7 +56,7 @@ async function getCompletionStream(
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ***REMOVED***`,
+                Authorization: `Bearer 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`,
             },
             payload: JSON.stringify(requestBody),
         });
@@ -103,11 +103,11 @@ async function getCompletionStream(
 function redditPost(url, title, subredditName="thirdbrain") {
     // Replace these with your own values
     const r = new snoowrap({
-        userAgent: '***REMOVED***',
-        clientId: '***REMOVED***',
-        clientSecret: '***REMOVED***',
-        username: '***REMOVED***',
-        password: '***REMOVED***'
+        userAgent: 'your_user_agent',
+        clientId: 'kOMMUHcNrDTmC4w7N4Fg_Q',
+        clientSecret: 'cKIB6DmymUYd9G7TGD23c-zM1BI3fA',
+        username: 'temberatur',
+        password: 'IhAd@!159107'
     });
 
     // Post the link
@@ -119,11 +119,11 @@ function redditPost(url, title, subredditName="thirdbrain") {
 function redditTextPost(title, text, subredditName="thirdbrain") {
     // Replace these with your own values
     const r = new snoowrap({
-        userAgent: '***REMOVED***',
-        clientId: '***REMOVED***',
-        clientSecret: '***REMOVED***',
-        username: '***REMOVED***',
-        password: '***REMOVED***'
+        userAgent: 'your_user_agent',
+        clientId: 'kOMMUHcNrDTmC4w7N4Fg_Q',
+        clientSecret: 'cKIB6DmymUYd9G7TGD23c-zM1BI3fA',
+        username: 'temberatur',
+        password: 'IhAd@!159107'
     });
 
     // Post the text
