@@ -113,10 +113,10 @@
       5. generalTerm
     </button>
     <button id="command6" class="commandBtn" data-key="6">6. Command 6</button>
+    <button id="copyButton" class="copy-button">Copy Result</button>
     <div id="loading" style="display: none">
       <p>Loading...</p>
     </div>
-    <button id="copyButton" class="copy-button">Copy Result</button>
 
     <div id="result"></div>
 
@@ -323,7 +323,7 @@
       });
 
       // show api key form if no api key is set
-      const apiKey = localStorage.getItem('OPENAI_API_KEY');
+      const apiKey = localStorage.getItem("OPENAI_API_KEY");
       if (!apiKey) {
         document.getElementById("env-form").style.display = "block";
       }
@@ -332,7 +332,7 @@
         .addEventListener("submit", function (event) {
           event.preventDefault();
           const apiKey = document.getElementById("api-key").value;
-          localStorage.setItem('OPENAI_API_KEY', apiKey);
+          localStorage.setItem("OPENAI_API_KEY", apiKey);
           window.location.reload();
         });
     </script>

@@ -196,7 +196,7 @@ function saveToHistory(request, response, newChat = false) {
   // Generate a UUID for the dialogue
 
   const uuid = newChat ? uuidv4() : getLastUuidFromFile();
-  const markdownText = `# Chat UUID: ${uuid}\n\n# User\n\n${request}\n\n# Assitant\n\n${response}\n\n---\n\n`;
+  const markdownText = `# Chat UUID: ${uuid}\n\n# User\n\n${request}\n\n# Assistant\n\n${response}\n\n---\n\n`;
 
   //append data to file
   fs.appendFile(HISTORY_FILE, markdownText, (err) => {

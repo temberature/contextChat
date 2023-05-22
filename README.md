@@ -4,6 +4,8 @@
 
 ContextChat is an interactive application to leverage the power of AI models for generating relevant and coherent responses for users. The application is built with JavaScript and Electron, and it uses OpenAI's models for the chat interface.
 
+This will require the "Automation" permission under the "Privacy" tab in "Security & Privacy" settings.
+
 ## Features
 
 - Interactive chat interface with various commands.
@@ -11,6 +13,7 @@ ContextChat is an interactive application to leverage the power of AI models for
 - Settings to adjust the model parameters for more precise responses.
 - Copy results to the clipboard with a single click.
 - Persistent storage of API keys and settings in local storage.
+- history markdown in Home Directory
 
 ## Installation
 
