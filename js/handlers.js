@@ -56,7 +56,7 @@ async function createChat() {
 
 async function waitChat() {
   // Create a promise that resolves when the 'Enter' key is pressed
-  const waitForEnter = new Promise((resolve) => {
+  const waitForEnter = new Promise((resolve, reject) => {
     const textArea = document.getElementById("user-message");
     textArea.addEventListener("keyup", function (event) {
       // Number 13 is the "Enter" key on the keyboard
@@ -121,7 +121,7 @@ async function chat(newChat = false) {
     }
   );
   document.getElementById("result").innerText += "\n\n";
-  const uuid = saveToHistory(chatPrompt, response, newChat);
+  const uuid = saveToHistory(userMessage, response, newChat);
   response = await getCompletionStream(
     `"${userMessage}"\n` + prompt,
     {
@@ -155,6 +155,10 @@ async function createResponse(index) {
     placeholder: "Planet name",
     callback: async function (value) {
       console.log(value);
+      if (!value) {
+        return;
+      }
+      
       // const prompt = `Could you please create three brief, hypothetical, one-round dialogues in the style of the characters from the TV show "Person of Interest" with background, where each dialogue incorporates "${value}"?\n\n`;
 
       // Call the function and store its return value in a variable
@@ -176,7 +180,7 @@ async function createResponse(index) {
           document.getElementById("result").innerText += chunk;
         }
       );
-      saveToMarkdown(prompt, response);
+      saveToHistory(prompt, response);
     },
   });
 }
