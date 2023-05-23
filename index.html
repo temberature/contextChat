@@ -171,6 +171,8 @@
     <div id="success-message" style="display: none; color: green">
       Parameters saved successfully
     </div>
+
+    <div id="log"></div>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
       const { ipcRenderer } = require("electron");
@@ -335,6 +337,22 @@
           localStorage.setItem("OPENAI_API_KEY", apiKey);
           window.location.reload();
         });
+
+      // Listen for log messages from the main process
+      // ipcRenderer.on("logMessage", (event, logMessage) => {
+      //   // Display the log message on the webpage
+      //   const logElement = document.getElementById("log");
+      //   logElement.textContent += logMessage;
+      // });
+
+      // Request the contents of the log file from the main process
+      // ipcRenderer.send("requestLog");
+
+      // ipcRenderer.on("logFile", (event, logFile) => {
+      //   // Display the contents of the log file on the webpage
+      //   const logElement = document.getElementById("log");
+      //   logElement.textContent = logFile;
+      // });
     </script>
   </body>
 </html>

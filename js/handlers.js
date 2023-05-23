@@ -217,7 +217,7 @@ ipcRenderer.on("markdown-contexts", async (event, data) => {
     // Call the function and store its return value in a variable
 
     response += await getCompletionStream(
-      context + summarizePrompt,
+      `'''${context}'''\n${summarizePrompt}`,
       {
         model,
         temperature,
