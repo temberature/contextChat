@@ -40,7 +40,7 @@ async function getCompletion(prompt, model = "gpt-3.5-turbo") {
     temperature: 0,
   };
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const response = await fetch("https://openai.talkgpt.space/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -64,7 +64,7 @@ async function getCompletionStream(prompt, options, callback) {
       ...options,
     };
 
-    const source = new SSE(`https://api.openai.com/v1/chat/completions`, {
+    const source = new SSE(`https://openai.talkgpt.space/v1/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -174,7 +174,7 @@ function getLastUuidFromFile() {
 
   // Split the file by the markdown separator
   const sections = data
-    .split("---")
+    .split("\n---\n")
     .filter((section) => section.length > 0 && section !== "\n\n");
   console.log(sections);
   // Get the last section
@@ -183,7 +183,7 @@ function getLastUuidFromFile() {
   // Extract the UUID from the last section
   const uuidMatch = lastSection.match(/Chat UUID: (\S+)/);
   if (uuidMatch) {
-    return uuidMatch[1];
+    return uuidMatch[1] === "null" ? null : uuidMatch[1];
   } else {
     return null;
   }
@@ -195,7 +195,8 @@ function saveToHistory(request, response, newChat = false) {
   console.log(response);
   // Generate a UUID for the dialogue
 
-  const uuid = newChat ? uuidv4() : getLastUuidFromFile();
+  const lastUuid = getLastUuidFromFile();
+  const uuid = newChat || !lastUuid ? uuidv4() : getLastUuidFromFile();
   const markdownText = `# Chat UUID: ${uuid}\n\n# User\n\n${request}\n\n# Assistant\n\n${response}\n\n---\n\n`;
 
   //append data to file
@@ -263,7 +264,7 @@ function readLastChatHistoryFile() {
     console.log("文件内容为空");
     return "";
   }
-  const chats = data.split("---\n\n").filter((chat) => chat !== ""); // Split the file content by '---\n\n'
+  const chats = data.split("\n---\n").filter((chat) => chat !== "" && chat !== "\n"); // Split the file content by '---\n\n'
   console.log(chats);
   const lastChat = chats[chats.length - 1]; // Get the last chat
   return lastChat;

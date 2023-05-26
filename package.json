@@ -8,7 +8,7 @@
     "start": "electron .",
     "postinstall": "./node_modules/.bin/electron-rebuild install-app-deps",
     "pack": "electron-builder --dir",
-    "build": "electron-builder",
+    "build": "electron-builder -mwl",
     "clean": "rimraf build",
     "prebuild": "npm run clean"
   },

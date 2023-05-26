@@ -41,10 +41,29 @@ async function handleButtonPress(buttonKey) {
       summarize();
       break;
     case 5:
-      generalTerm();
+      rewrite();
+      break;
+    case 6:
+      explain();
       break;
   }
 
+}
+
+function createDialogues() {
+  createResponse(0);
+}
+
+function relatedConcepts() {
+  createResponse(1);
+}
+
+function rewrite() {
+  createResponse(4);
+}
+
+function explain() {
+  createResponse(5);
 }
 
 async function createChat() {
@@ -145,17 +164,7 @@ async function chat(newChat = false) {
   await chat();
 }
 
-function createDialogues() {
-  createResponse(0);
-}
 
-function relatedConcepts() {
-  createResponse(1);
-}
-
-function generalTerm() {
-  createResponse(4);
-}
 
 async function createResponse(index) {
   console.log("createResponse");
@@ -178,7 +187,7 @@ async function createResponse(index) {
       const prompts = prompt.split("\n\n");
       for (let i = 0; i < prompts.length; i++) {
 
-        const finalPrompt = `context: ${context}\n\n${prompts[i]}`;
+        const finalPrompt = context.length > 10 ? `context: ${context}\n\n${prompts[i]}`: prompts[i];
         document.getElementById("result").innerText += finalPrompt + "\n\n";
         const response = await getCompletionStream(
           finalPrompt,
@@ -193,7 +202,8 @@ async function createResponse(index) {
             document.getElementById("result").innerText += chunk;
           }
         );
-        const uuid = saveToHistory(prompt, response);
+        document.getElementById("result").innerText += "\n\n";
+        const uuid = saveToHistory(prompts[i], response);
         updateDesires(["1.提高英语沟通能力"], uuid);
       }
     },
@@ -244,7 +254,7 @@ ipcRenderer.on("markdown-contexts", async (event, data) => {
   }
   redditTextPost(
     title,
-    url + "\n\n" + result
+    url + "\n\n" + response + "（AI generated content）"
   );
 });
 

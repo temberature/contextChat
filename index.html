@@ -1,66 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>ContextChat</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/4.0.0/github-markdown.min.css"
+    />
+    <link rel="stylesheet" href="./css/vex.css" />
+    <link rel="stylesheet" href="./css/vex-theme-os.css" />
+
     <style>
-      /* General styles */
-      body {
-        font-family: "Arial", sans-serif;
-        background-color: #f3f3f3;
-        color: #333;
-        padding-bottom: 120px;
+      #env-form {
+        display: none;
       }
-
-      /* Button styles */
-      button {
-        display: inline-block;
-        padding: 10px 20px;
-        margin: 5px 2px;
-        background-color: #4caf50;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
+      .markdown-body li > p {
+        margin-top: 0.2em;
+        margin-bottom: 0.2em;
       }
-
-      button:hover {
-        background-color: #45a049;
-      }
-
-      /* Result styles */
-      #result {
-        margin-top: 10px;
-        width: 80%;
-        margin-left: auto;
-        margin-right: auto;
-        border: 1px solid #ccc;
-        padding: 20px;
-        border-radius: 5px;
-        background-color: white;
-      }
-
-      /* Loading styles */
-      #loading {
-        text-align: center;
-        color: #555;
-      }
-
-      .copy-button {
-        background-color: #007bff; /* Change this color to your desired color */
-        border-color: #007bff;
-        color: white;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-      }
-
-      .copy-button:hover {
-        background-color: #0056b3; /* Change this color to your desired hover color */
-        border-color: #0056b3;
-      }
-
       /* Style for user input area */
       #user-input-area {
         position: fixed;
@@ -71,108 +32,210 @@
         padding: 10px;
         box-sizing: border-box;
         border-top: 1px solid #ccc; /* Change this to match your theme */
+        
       }
-
       #user-message {
-        width: calc(100% - 120px); /* Adjust this value as needed */
-      }
+        width: 100%;
+        padding: 10px;
 
-      #submit-message {
-        width: 100px; /* Adjust this value as needed */
-        float: right;
-      }
-
-      #env-form {
-        display: none;
       }
     </style>
-    <link rel="stylesheet" href="./css/vex.css" />
-    <link rel="stylesheet" href="./css/vex-theme-os.css" />
   </head>
 
-  <body>
-    <form id="env-form">
-      <label for="api-key">API Key</label>
-      <input type="text" id="api-key" name="api-key" required />
+  <body class="bg-gray-200 font-sans leading-normal tracking-normal">
+    <div class="container mx-auto p-6">
+      <form id="env-form" class="m-6 bg-white rounded-lg shadow p-4">
+        <div class="mb-4">
+          <label for="api-key" class="block text-sm font-bold mb-2"
+            >API Key (only required for first-time users or when the API key
+            changes)</label
+          >
+          <input
+            type="text"
+            id="api-key"
+            name="api-key"
+            required=""
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          />
+          <input
+            type="submit"
+            value="Submit"
+            class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          />
+        </div>
+      </form>
 
-      <input type="submit" value="Submit" />
-    </form>
-
-    <p>Press the number keys to trigger the corresponding prompts:</p>
-    <button id="command1" class="commandBtn" data-key="1">
-      1. Create Dialogues
-    </button>
-    <button id="command2" class="commandBtn" data-key="2">
-      2. relatedConcepts
-    </button>
-    <button id="command3" class="commandBtn" data-key="3">3. Chat</button>
-    <button id="summaryButton" class="commandBtn" data-key="4">
-      4. Get summary
-    </button>
-    <button id="command5" class="commandBtn" data-key="5">
-      5. generalTerm
-    </button>
-    <button id="command6" class="commandBtn" data-key="6">6. Command 6</button>
-    <button id="copyButton" class="copy-button">Copy Result</button>
-    <div id="loading" style="display: none">
-      <p>Loading...</p>
-    </div>
-
-    <div id="result"></div>
-
-    <form id="parameters-form" style="display: none">
-      <div>
-        <label for="model-input">Model:</label>
-        <select id="model">
-          <option value="" disabled>Select a model</option>
-          <option value="gpt-4">gpt-4</option>
-          <option value="gpt-4-0314">gpt-4-0314</option>
-          <option value="gpt-4-32k" disabled>gpt-4-32k</option>
-          <option value="gpt-4-32k-0314" disabled>gpt-4-32k-0314</option>
-          <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
-          <option value="gpt-3.5-turbo-0301">gpt-3.5-turbo-0301</option>
-        </select>
-      </div>
-      <div>
-        <label>Prompt: </label>
-        <textarea id="prompt" name="prompt" rows="10">
-\n总结上述内容，以大纲的形式给出，并使用中文。\n</textarea
+      <div id="commands" class="grid grid-cols-3 gap-4 m-6">
+        <!-- command buttons -->
+        <button
+          id="command1"
+          class="commandBtn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          data-key="1"
+          title="Create Dialogues"
         >
-      </div>
-      <div>
-        <label>Temperature: </label>
-        <input id="temperature" type="number" name="temperature" value="1" />
-      </div>
-      <div>
-        <label>Stream: </label>
-        <input id="stream" type="checkbox" name="stream" checked />
-      </div>
-      <div>
-        <label>Presence Penalty: </label>
-        <input
-          id="presence_penalty"
-          type="number"
-          name="presence_penalty"
-          value="0"
-        />
-      </div>
-      <button id="saveButton" type="submit">Save</button>
-    </form>
+          1. Create Dialogues
+        </button>
 
-    <!-- Adding the new user input area and submit button -->
-    <div id="user-input-area">
-      <textarea
-        id="user-message"
-        name="user-message"
-        style="width: 100%; height: 100px"
-      ></textarea>
+        <button
+          id="command2"
+          class="commandBtn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          data-key="2"
+        >
+          2. Related Concepts
+        </button>
+        <button
+          id="command3"
+          class="commandBtn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          data-key="3"
+        >
+          3. Chat
+        </button>
+        <button
+          id="summaryButton"
+          class="commandBtn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          data-key="4"
+        >
+          4. Get Summary
+        </button>
+        <button
+          id="command5"
+          class="commandBtn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          data-key="5"
+        >
+          5. rewrite
+        </button>
+        <button
+          id="command6"
+          class="commandBtn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          data-key="6"
+        >
+          6. explain
+        </button>
+
+        <!-- Copy button -->
+        <div class="col-span-3 text-center">
+          <button
+            id="copyButton"
+            class="copy-button bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            Copy Result
+          </button>
+        </div>
+      </div>
+
+      <div id="loading" class="text-center text-gray-500" style="display: none">
+        <p>Loading...</p>
+      </div>
+
+      <div
+        id="result"
+        class="m-6 bg-white p-4 rounded-lg shadow markdown-body"
+      ></div>
+
+      <div class="mx-auto px-4 sm:px-6 md:px-8">
+        <!-- Form starts here -->
+        <form id="parameters-form" class="space-y-4">
+          <div>
+            <label
+              for="model-input"
+              class="block text-sm font-medium text-gray-700"
+              >Model:</label
+            >
+            <div class="mt-1">
+              <select
+                id="model"
+                class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              >
+                <option value="" disabled>Select a model</option>
+                <option value="gpt-4">gpt-4</option>
+                <option value="gpt-4-0314">gpt-4-0314</option>
+                <option value="gpt-4-32k" disabled>gpt-4-32k</option>
+                <option value="gpt-4-32k-0314" disabled>gpt-4-32k-0314</option>
+                <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
+                <option value="gpt-3.5-turbo-0301">gpt-3.5-turbo-0301</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label for="prompt" class="block text-sm font-medium text-gray-700"
+              >Prompt:</label
+            >
+            <div class="mt-1">
+              <textarea
+                id="prompt"
+                name="prompt"
+                rows="10"
+                class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              >
+              </textarea>
+            </div>
+          </div>
+          <div>
+            <label>Temperature: </label>
+            <input
+              id="temperature"
+              type="number"
+              name="temperature"
+              value="1"
+            />
+          </div>
+          <div>
+            <label>Stream: </label>
+            <input id="stream" type="checkbox" name="stream" checked />
+          </div>
+
+          <div>
+            <label>Presence Penalty: </label>
+            <input
+              id="presence_penalty"
+              type="number"
+              name="presence_penalty"
+              value="0"
+            />
+          </div>
+          <!-- More form fields go here -->
+          <div>
+            <button
+              id="saveButton"
+              type="submit"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+        <!-- Success message -->
+        <div
+          id="success-message"
+          class="mt-4 text-green-600"
+          style="display: none"
+        >
+          Parameters saved successfully
+        </div>
+        <!-- User input area -->
+        <div id="user-input-area" class="mt-6">
+          <textarea
+            id="user-message"
+            name="user-message"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full h-20 sm:text-sm border-gray-300 rounded-md"
+          ></textarea>
+        </div>
+
+        <!-- Project Description -->
+        <div id="project" class="mt-4 text-gray-700">
+          temberature/contextChat: ContextChat is an interactive application to
+          leverage the power of AI models for generating relevant and coherent
+          responses for users. The application is built with JavaScript and
+          Electron, and it uses OpenAI's models for the chat interface. Visit
+          the project on
+          <a
+            href="https://github.com/temberature/contextChat"
+            class="text-blue-600 hover:text-blue-800"
+            >GitHub</a
+          >.
+        </div>
+      </div>
     </div>
-
-    <div id="success-message" style="display: none; color: green">
-      Parameters saved successfully
-    </div>
-
-    <div id="log"></div>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
       const { ipcRenderer } = require("electron");
@@ -194,6 +257,7 @@
 
       let lastChat = readLastChatHistoryFile().replaceAll("\n", "\n\n");
       console.log("lastChat", lastChat);
+      console.log("markdown", marked.parse(lastChat));
       document.getElementById("result").innerHTML = marked.parse(lastChat);
 
       let lastClickedCommand;
