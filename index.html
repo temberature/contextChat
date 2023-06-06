@@ -193,6 +193,10 @@
               value="0"
             />
           </div>
+          <div>
+            <label>Personalized: </label>
+            <input id="personalized" type="checkbox" name="personalized" checked />
+          </div>
           <!-- More form fields go here -->
           <div>
             <button
@@ -279,21 +283,21 @@
         });
       });
 
-      const saveButton = document.getElementById("saveButton");
-      saveButton.addEventListener("click", () => {
-        const model = document.getElementById("model").value;
-        const prompt = document.getElementById("prompt").value;
-        const temperature = document.getElementById("temperature").value;
-        const stream = document.getElementById("stream").checked;
-        const presence_penalty =
-          document.getElementById("presence_penalty").value;
+      
+      // saveButton.addEventListener("click", () => {
+      //   const model = document.getElementById("model").value;
+      //   const prompt = document.getElementById("prompt").value;
+      //   const temperature = document.getElementById("temperature").value;
+      //   const stream = document.getElementById("stream").checked;
+      //   const presence_penalty =
+      //     document.getElementById("presence_penalty").value;
 
-        localStorage.setItem("model", model);
-        localStorage.setItem("prompt", prompt);
-        localStorage.setItem("temperature", temperature);
-        localStorage.setItem("stream", stream);
-        localStorage.setItem("presence_penalty", presence_penalty);
-      });
+      //   localStorage.setItem("model", model);
+      //   localStorage.setItem("prompt", prompt);
+      //   localStorage.setItem("temperature", temperature);
+      //   localStorage.setItem("stream", stream);
+      //   localStorage.setItem("presence_penalty", presence_penalty);
+      // });
 
       // To retrieve:
       const savedPrompt = localStorage.getItem("prompt");
@@ -329,10 +333,12 @@
         document.getElementById("temperature").value = commandParameter[2];
         document.getElementById("stream").checked = commandParameter[3];
         document.getElementById("presence_penalty").value = commandParameter[4];
+        document.getElementById("personalized").checked = commandParameter[5];
         document.getElementById("parameters-form").style.display = "block";
         lastClickedCommand = index; // Update last clicked command
       }
 
+      const saveButton = document.getElementById("saveButton");
       // When save button is clicked, save parameters in localStorage
       saveButton.addEventListener("click", (e) => {
         e.preventDefault();
@@ -343,12 +349,14 @@
         const stream = document.getElementById("stream").checked;
         const presence_penalty =
           +document.getElementById("presence_penalty").value;
+        const personalized = document.getElementById("personalized").checked;
         parameters[lastClickedCommand] = [
           model,
           prompt,
           temperature,
           stream,
           presence_penalty,
+          personalized,
         ];
         localStorage.setItem("parameters", JSON.stringify(parameters));
         // show success message

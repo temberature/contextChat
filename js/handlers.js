@@ -118,7 +118,7 @@ async function chat(newChat = false) {
   textArea.value = "";
   // Call the function and store its return value in a variable
   const parameters = getParametersFromLocalStorage();
-  let [model, prompt, temperature, stream, presencePenalty] = parameters[2] || [
+  let [model, prompt, temperature, stream, presencePenalty, personalized] = parameters[2] || [
     "gpt-3.5-turbo",
     "Command 3 prompt",
     1,
@@ -128,7 +128,7 @@ async function chat(newChat = false) {
   const desires = readAllDesires();
   const randomDesires = desires.sort(() => 0.5 - Math.random()).slice(0, 3);
   console.log(randomDesires);
-  const chatPrompt = `我的长期需要和兴趣：\n${randomDesires.join('\n')}\n请结合上述我的长期需要和兴趣给出回应"${userMessage}"`;
+  const chatPrompt = personalized ? `我的长期需要和兴趣：\n${randomDesires.join('\n')}\n请结合上述我的长期需要和兴趣给出回应"${userMessage}"` : userMessage;
   document.getElementById("result").innerText += chatPrompt + "\n\n";
   let response = await getCompletionStream(
     chatPrompt,
